@@ -1,0 +1,272 @@
+openapi: 3.0.3
+info:
+  title: Customer Service API
+  description: API para gestión de clientes del banco
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+  - url: http://localhost:8082/api/v1
+tags:
+  - name: Customers
+    description: Operaciones de clientes
+paths:
+  /customers:
+    post:
+      tags:
+        - Customers
+      summary: Crear nuevo cliente
+      operationId: createCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerRequestDTO'
+      responses:
+        '201':
+          description: Cliente creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponseDTO'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Cliente ya existe
+
+    get:
+      tags:
+        - Customers
+      summary: Listar clientes
+      operationId: getAllCustomers
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Lista de clientes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomerResponseDTO'
+  /customers/{id}:
+    get:
+      tags:
+        - Customers
+      summary: Obtener cliente por ID
+      operationId: getCustomerById
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponseDTO'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Customers
+      summary: Actualizar cliente
+      operationId: updateCustomer
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerUpdateDTO'
+      responses:
+        '200':
+          description: Cliente actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponseDTO'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Customers
+      summary: Eliminar cliente
+      operationId: deleteCustomer
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Cliente eliminado
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /customers/document/{documentNumber}:
+    get:
+      tags:
+        - Customers
+      summary: Buscar cliente por documento
+      operationId: getCustomerByDocument
+      parameters:
+        - name: documentNumber
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponseDTO'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /customers/{id}/products:
+    get:
+      tags:
+        - Customers
+      summary: Obtener productos del cliente
+      operationId: getCustomerProducts
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Productos del cliente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductSummaryDTO'
+components:
+  schemas:
+    CustomerRequestDTO:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - documentType
+        - documentNumber
+        - email
+        - customerType
+      properties:
+        firstName:
+          type: string
+          minLength: 2
+          maxLength: 100
+        lastName:
+          type: string
+          minLength: 2
+          maxLength: 100
+        documentType:
+          type: string
+          enum: [DNI, CEX, PASSPORT, RUC]
+        documentNumber:
+          type: string
+          pattern: '^[0-9]{8,12}$'
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          pattern: '^\+[0-9]{10,15}$'
+        address:
+          type: string
+        customerType:
+          type: string
+          enum: [PERSONAL, BUSINESS]
+        customerProfile:
+          type: string
+          enum: [STANDARD, VIP, PYME]
+          default: STANDARD
+    CustomerResponseDTO:
+      allOf:
+        - $ref: '#/components/schemas/CustomerRequestDTO'
+        - type: object
+          properties:
+            id:
+              type: string
+            active:
+              type: boolean
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+    CustomerUpdateDTO:
+      type: object
+      properties:
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        address:
+          type: string
+        customerProfile:
+          type: string
+          enum: [STANDARD, VIP, PYME]
+    ProductSummaryDTO:
+      type: object
+      properties:
+        customerId:
+          type: string
+        accounts:
+          type: array
+          items:
+            type: object
+        credits:
+          type: array
+          items:
+            type: object
+        cards:
+          type: object
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 0
+    SizeParam:
+      name: size
+      in: query
+      schema:
+        type: integer
+        default: 20
+  responses:
+    BadRequest:
+      description: Datos inválidos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

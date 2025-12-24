@@ -8,3 +8,8 @@ spring:
     mongodb:
       uri: mongodb://localhost:27017/banking_customers
       auto-index-creation: true
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
