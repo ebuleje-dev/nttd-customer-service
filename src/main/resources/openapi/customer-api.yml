@@ -1,20 +1,29 @@
 openapi: 3.0.3
 info:
   title: Customer Service API
-  description: API para gestión de clientes del banco
+  description: API para gestión de clientes del sistema bancario (NTT Data Bootcamp)
   version: 1.0.0
+  contact:
+    name: NTT Data Banking Team
+    email: banking@nttdata.com
+
 servers:
-  - url: http://localhost:8080/api/v1
   - url: http://localhost:8082/api/v1
+    description: Local development server
+  - url: http://customer-service:8082/api/v1
+    description: Docker environment
+
 tags:
   - name: Customers
-    description: Operaciones de clientes
+    description: Operaciones CRUD de clientes
+
 paths:
   /customers:
     post:
       tags:
         - Customers
-      summary: Crear nuevo cliente
+      summary: Crear un nuevo cliente
+      description: Crea un nuevo cliente (Personal o Empresarial)
       operationId: createCustomer
       requestBody:
         required: true
@@ -24,24 +33,48 @@ paths:
               $ref: '#/components/schemas/CustomerRequestDTO'
       responses:
         '201':
-          description: Cliente creado
+          description: Cliente creado exitosamente
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/CustomerResponseDTO'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: Datos de entrada inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '409':
-          description: Cliente ya existe
+          description: Cliente ya existe (email o documento duplicado)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
     get:
       tags:
         - Customers
-      summary: Listar clientes
+      summary: Obtener todos los clientes
+      description: Retorna lista de todos los clientes con paginación opcional
       operationId: getAllCustomers
       parameters:
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/SizeParam'
+        - name: page
+          in: query
+          description: Número de página (inicia en 0)
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: size
+          in: query
+          description: Tamaño de página
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
       responses:
         '200':
           description: Lista de clientes
@@ -51,68 +84,18 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/CustomerResponseDTO'
+
   /customers/{id}:
     get:
       tags:
         - Customers
       summary: Obtener cliente por ID
+      description: Retorna un cliente específico por su ID
       operationId: getCustomerById
       parameters:
-        - $ref: '#/components/parameters/IdParam'
-      responses:
-        '200':
-          description: Cliente encontrado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CustomerResponseDTO'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-    put:
-      tags:
-        - Customers
-      summary: Actualizar cliente
-      operationId: updateCustomer
-      parameters:
-        - $ref: '#/components/parameters/IdParam'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CustomerUpdateDTO'
-      responses:
-        '200':
-          description: Cliente actualizado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CustomerResponseDTO'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-    delete:
-      tags:
-        - Customers
-      summary: Eliminar cliente
-      operationId: deleteCustomer
-      parameters:
-        - $ref: '#/components/parameters/IdParam'
-      responses:
-        '204':
-          description: Cliente eliminado
-        '404':
-          $ref: '#/components/responses/NotFound'
-  /customers/document/{documentNumber}:
-    get:
-      tags:
-        - Customers
-      summary: Buscar cliente por documento
-      operationId: getCustomerByDocument
-      parameters:
-        - name: documentNumber
+        - name: id
           in: path
+          description: ID del cliente
           required: true
           schema:
             type: string
@@ -124,149 +107,476 @@ paths:
               schema:
                 $ref: '#/components/schemas/CustomerResponseDTO'
         '404':
-          $ref: '#/components/responses/NotFound'
-  /customers/{id}/products:
-    get:
-      tags:
-        - Customers
-      summary: Obtener productos del cliente
-      operationId: getCustomerProducts
-      parameters:
-        - $ref: '#/components/parameters/IdParam'
-      responses:
-        '200':
-          description: Productos del cliente
+          description: Cliente no encontrado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProductSummaryDTO'
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Customers
+      summary: Actualizar cliente
+      description: Actualiza los datos de un cliente existente
+      operationId: updateCustomer
+      parameters:
+        - name: id
+          in: path
+          description: ID del cliente
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerUpdateDTO'
+      responses:
+        '200':
+          description: Cliente actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponseDTO'
+        '404':
+          description: Cliente no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Datos de entrada inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Customers
+      summary: Eliminar cliente
+      description: Elimina (soft delete) un cliente por su ID
+      operationId: deleteCustomer
+      parameters:
+        - name: id
+          in: path
+          description: ID del cliente
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Cliente eliminado exitosamente
+        '404':
+          description: Cliente no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /customers/{id}/profile:
+    patch:
+      tags:
+        - Customers
+      summary: Actualizar perfil del cliente
+      description: Actualiza el perfil del cliente (VIP/PYME)
+      operationId: updateCustomerProfile
+      parameters:
+        - name: id
+          in: path
+          description: ID del cliente
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateDTO'
+      responses:
+        '200':
+          description: Perfil actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponseDTO'
+        '404':
+          description: Cliente no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Actualización de perfil no permitida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /customers/document/{documentNumber}:
+    get:
+      tags:
+        - Customers
+      summary: Buscar cliente por número de documento
+      description: Retorna un cliente por su número de documento
+      operationId: getCustomerByDocument
+      parameters:
+        - name: documentNumber
+          in: path
+          description: Número de documento del cliente
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponseDTO'
+        '404':
+          description: Cliente no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /customers/email/{email}:
+    get:
+      tags:
+        - Customers
+      summary: Buscar cliente por email
+      description: Retorna un cliente por su email
+      operationId: getCustomerByEmail
+      parameters:
+        - name: email
+          in: path
+          description: Email del cliente
+          required: true
+          schema:
+            type: string
+            format: email
+      responses:
+        '200':
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponseDTO'
+        '404':
+          description: Cliente no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
     CustomerRequestDTO:
+      type: object
+      required:
+        - customerType
+        - documentType
+        - documentNumber
+        - email
+        - phoneNumber
+        - address
+      properties:
+        customerType:
+          type: string
+          enum: [PERSONAL, BUSINESS]
+          description: Tipo de cliente
+
+        # Campos comunes
+        documentType:
+          type: string
+          enum: [DNI, CEX, PASSPORT, RUC]
+          description: Tipo de documento
+        documentNumber:
+          type: string
+          minLength: 8
+          maxLength: 20
+          description: Número de documento
+        email:
+          type: string
+          format: email
+          description: Email del cliente
+        phoneNumber:
+          type: string
+          pattern: '^\+?[0-9]{9,15}$'
+          description: Número de teléfono
+        address:
+          type: string
+          minLength: 10
+          maxLength: 200
+          description: Dirección del cliente
+
+        # Campos para PERSONAL
+        firstName:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Nombres (solo para PERSONAL)
+        lastName:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Apellidos (solo para PERSONAL)
+        dateOfBirth:
+          type: string
+          format: date-time
+          description: Fecha de nacimiento (solo para PERSONAL)
+        gender:
+          type: string
+          enum: [MALE, FEMALE, OTHER]
+          description: Género (solo para PERSONAL)
+        personalProfile:
+          type: string
+          enum: [STANDARD, VIP]
+          default: STANDARD
+          description: Perfil del cliente personal
+
+        # Campos para BUSINESS
+        businessName:
+          type: string
+          minLength: 2
+          maxLength: 200
+          description: Razón social (solo para BUSINESS)
+        businessType:
+          type: string
+          enum: [SAC, SRL, SA, EIRL]
+          description: Tipo de empresa (solo para BUSINESS)
+        taxId:
+          type: string
+          minLength: 11
+          maxLength: 11
+          description: RUC (solo para BUSINESS)
+        businessProfile:
+          type: string
+          enum: [STANDARD, PYME]
+          default: STANDARD
+          description: Perfil del cliente empresarial
+        authorizedSigners:
+          type: array
+          description: Lista de firmantes autorizados (solo para BUSINESS)
+          items:
+            $ref: '#/components/schemas/AuthorizedSignerDTO'
+
+    CustomerResponseDTO:
+      type: object
+      required:
+        - id
+        - customerType
+        - documentType
+        - documentNumber
+        - email
+        - phoneNumber
+        - address
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          description: ID del cliente
+        customerType:
+          type: string
+          enum: [PERSONAL, BUSINESS]
+          description: Tipo de cliente
+
+        # Campos comunes
+        documentType:
+          type: string
+          enum: [DNI, CEX, PASSPORT, RUC]
+          description: Tipo de documento
+        documentNumber:
+          type: string
+          description: Número de documento
+        email:
+          type: string
+          format: email
+          description: Email del cliente
+        phoneNumber:
+          type: string
+          description: Número de teléfono
+        address:
+          type: string
+          description: Dirección del cliente
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, BLOCKED]
+          description: Estado del cliente
+        createdAt:
+          type: string
+          format: date-time
+          description: Fecha de creación
+        updatedAt:
+          type: string
+          format: date-time
+          description: Fecha de última actualización
+
+        # Campos para PERSONAL
+        firstName:
+          type: string
+          description: Nombres (solo para PERSONAL)
+        lastName:
+          type: string
+          description: Apellidos (solo para PERSONAL)
+        dateOfBirth:
+          type: string
+          format: date-time
+          description: Fecha de nacimiento (solo para PERSONAL)
+        gender:
+          type: string
+          enum: [MALE, FEMALE, OTHER]
+          description: Género (solo para PERSONAL)
+        personalProfile:
+          type: string
+          enum: [STANDARD, VIP]
+          description: Perfil del cliente personal
+        age:
+          type: integer
+          description: Edad calculada (solo para PERSONAL)
+
+        # Campos para BUSINESS
+        businessName:
+          type: string
+          description: Razón social (solo para BUSINESS)
+        businessType:
+          type: string
+          enum: [SAC, SRL, SA, EIRL]
+          description: Tipo de empresa (solo para BUSINESS)
+        taxId:
+          type: string
+          description: RUC (solo para BUSINESS)
+        businessProfile:
+          type: string
+          enum: [STANDARD, PYME]
+          description: Perfil del cliente empresarial
+        authorizedSigners:
+          type: array
+          description: Lista de firmantes autorizados (solo para BUSINESS)
+          items:
+            $ref: '#/components/schemas/AuthorizedSignerDTO'
+
+    CustomerUpdateDTO:
+      type: object
+      properties:
+        # Campos comunes actualizables
+        email:
+          type: string
+          format: email
+          description: Email del cliente
+        phoneNumber:
+          type: string
+          pattern: '^\+?[0-9]{9,15}$'
+          description: Número de teléfono
+        address:
+          type: string
+          minLength: 10
+          maxLength: 200
+          description: Dirección del cliente
+
+        # Campos para PERSONAL
+        firstName:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Nombres (solo para PERSONAL)
+        lastName:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Apellidos (solo para PERSONAL)
+        gender:
+          type: string
+          enum: [MALE, FEMALE, OTHER]
+          description: Género (solo para PERSONAL)
+
+        # Campos para BUSINESS
+        businessName:
+          type: string
+          minLength: 2
+          maxLength: 200
+          description: Razón social (solo para BUSINESS)
+        authorizedSigners:
+          type: array
+          description: Lista de firmantes autorizados (solo para BUSINESS)
+          items:
+            $ref: '#/components/schemas/AuthorizedSignerDTO'
+
+    ProfileUpdateDTO:
+      type: object
+      required:
+        - profileType
+      properties:
+        profileType:
+          type: string
+          enum: [VIP, PYME]
+          description: Nuevo perfil del cliente (VIP para personal, PYME para empresarial)
+
+    AuthorizedSignerDTO:
       type: object
       required:
         - firstName
         - lastName
         - documentType
         - documentNumber
-        - email
-        - customerType
+        - role
       properties:
         firstName:
           type: string
           minLength: 2
           maxLength: 100
+          description: Nombres del firmante
         lastName:
           type: string
           minLength: 2
           maxLength: 100
+          description: Apellidos del firmante
         documentType:
           type: string
-          enum: [DNI, CEX, PASSPORT, RUC]
+          enum: [DNI, CEX, PASSPORT]
+          description: Tipo de documento del firmante
         documentNumber:
           type: string
-          pattern: '^[0-9]{8,12}$'
-        email:
+          minLength: 8
+          maxLength: 20
+          description: Número de documento del firmante
+        role:
           type: string
-          format: email
-        phone:
-          type: string
-          pattern: '^\+[0-9]{10,15}$'
-        address:
-          type: string
-        customerType:
-          type: string
-          enum: [PERSONAL, BUSINESS]
-        customerProfile:
-          type: string
-          enum: [STANDARD, VIP, PYME]
-          default: STANDARD
-    CustomerResponseDTO:
-      allOf:
-        - $ref: '#/components/schemas/CustomerRequestDTO'
-        - type: object
-          properties:
-            id:
-              type: string
-            active:
-              type: boolean
-            createdAt:
-              type: string
-              format: date-time
-            updatedAt:
-              type: string
-              format: date-time
-    CustomerUpdateDTO:
-      type: object
-      properties:
-        phone:
-          type: string
-        email:
-          type: string
-          format: email
-        address:
-          type: string
-        customerProfile:
-          type: string
-          enum: [STANDARD, VIP, PYME]
-    ProductSummaryDTO:
-      type: object
-      properties:
-        customerId:
-          type: string
-        accounts:
-          type: array
-          items:
-            type: object
-        credits:
-          type: array
-          items:
-            type: object
-        cards:
-          type: object
+          enum: [TITULAR, AUTHORIZED]
+          description: Rol del firmante
+
     ErrorResponse:
       type: object
+      required:
+        - timestamp
+        - status
+        - error
+        - message
+        - path
       properties:
         timestamp:
           type: string
           format: date-time
+          description: Timestamp del error
         status:
           type: integer
+          description: Código de estado HTTP
         error:
           type: string
+          description: Tipo de error
         message:
           type: string
+          description: Mensaje de error
         path:
           type: string
-  parameters:
-    IdParam:
-      name: id
-      in: path
-      required: true
-      schema:
-        type: string
-    PageParam:
-      name: page
-      in: query
-      schema:
-        type: integer
-        default: 0
-    SizeParam:
-      name: size
-      in: query
-      schema:
-        type: integer
-        default: 20
-  responses:
-    BadRequest:
-      description: Datos inválidos
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    NotFound:
-      description: Recurso no encontrado
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
+          description: Path de la petición
+        details:
+          type: array
+          description: Detalles adicionales del error (ej. validaciones)
+          items:
+            type: string

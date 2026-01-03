@@ -26,8 +26,12 @@ target/
 /nbdist/
 /.nb-gradle/
 build/
+.claude
 !**/src/main/**/build/
 !**/src/test/**/build/
 
 ### VS Code ###
 .vscode/
+
+### Documentation ###
+src/main/resources/docs/
