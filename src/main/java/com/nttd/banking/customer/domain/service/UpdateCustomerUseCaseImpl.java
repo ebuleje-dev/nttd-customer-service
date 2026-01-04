@@ -4,6 +4,7 @@ import com.nttd.banking.customer.application.exception.CustomerNotFoundException
 import com.nttd.banking.customer.domain.model.Customer;
 import com.nttd.banking.customer.domain.port.in.UpdateCustomerUseCase;
 import com.nttd.banking.customer.domain.port.out.CustomerCacheRepository;
+import com.nttd.banking.customer.domain.port.out.CustomerEventPublisher;
 import com.nttd.banking.customer.domain.port.out.CustomerRepository;
 import java.time.Duration;
 import java.time.Instant;
@@ -25,6 +26,7 @@ public class UpdateCustomerUseCaseImpl implements UpdateCustomerUseCase {
 
   private final CustomerRepository customerRepository;
   private final CustomerCacheRepository cacheRepository;
+  private final CustomerEventPublisher eventPublisher;
 
   private static final Duration CACHE_TTL = Duration.ofHours(1);
 
@@ -42,6 +44,7 @@ public class UpdateCustomerUseCaseImpl implements UpdateCustomerUseCase {
                 evictCache(updated)
                     .then(cacheRepository.save(updated, CACHE_TTL))
                     .thenReturn(updated))
+        .flatMap(updated -> eventPublisher.publishCustomerUpdated(updated).thenReturn(updated))
         .doOnSuccess(
             updated -> log.info("Customer updated successfully with id: {}", updated.getId()))
         .doOnError(error -> log.error("Error updating customer {}: {}", id, error.getMessage()));

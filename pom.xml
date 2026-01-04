@@ -125,6 +125,12 @@
 			<artifactId>spring-kafka</artifactId>
 		</dependency>
 
+		<!-- Reactor Kafka -->
+		<dependency>
+			<groupId>io.projectreactor.kafka</groupId>
+			<artifactId>reactor-kafka</artifactId>
+		</dependency>
+
 		<!-- Resilience4j Circuit Breaker -->
 		<dependency>
 			<groupId>io.github.resilience4j</groupId>

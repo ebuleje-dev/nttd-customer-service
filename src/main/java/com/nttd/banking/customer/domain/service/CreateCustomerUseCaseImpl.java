@@ -7,6 +7,7 @@ import com.nttd.banking.customer.domain.model.Customer;
 import com.nttd.banking.customer.domain.model.PersonalCustomer;
 import com.nttd.banking.customer.domain.port.in.CreateCustomerUseCase;
 import com.nttd.banking.customer.domain.port.out.CustomerCacheRepository;
+import com.nttd.banking.customer.domain.port.out.CustomerEventPublisher;
 import com.nttd.banking.customer.domain.port.out.CustomerRepository;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class CreateCustomerUseCaseImpl implements CreateCustomerUseCase {
 
   private final CustomerRepository customerRepository;
   private final CustomerCacheRepository cacheRepository;
+  private final CustomerEventPublisher eventPublisher;
 
   private static final Duration CACHE_TTL = Duration.ofHours(1);
 
@@ -39,6 +41,7 @@ public class CreateCustomerUseCaseImpl implements CreateCustomerUseCase {
         .then(checkDocumentUniqueness(customer.getDocumentNumber()))
         .then(customerRepository.save(customer))
         .flatMap(saved -> cacheRepository.save(saved, CACHE_TTL).thenReturn(saved))
+        .flatMap(saved -> eventPublisher.publishCustomerCreated(saved).thenReturn(saved))
         .doOnSuccess(saved -> log.info("Customer created successfully with id: {}", saved.getId()))
         .doOnError(error -> log.error("Error creating customer: {}", error.getMessage()));
   }

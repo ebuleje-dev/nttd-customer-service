@@ -5,6 +5,7 @@ import com.nttd.banking.customer.domain.model.Customer;
 import com.nttd.banking.customer.domain.model.enums.CustomerStatus;
 import com.nttd.banking.customer.domain.port.in.DeleteCustomerUseCase;
 import com.nttd.banking.customer.domain.port.out.CustomerCacheRepository;
+import com.nttd.banking.customer.domain.port.out.CustomerEventPublisher;
 import com.nttd.banking.customer.domain.port.out.CustomerRepository;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class DeleteCustomerUseCaseImpl implements DeleteCustomerUseCase {
 
   private final CustomerRepository customerRepository;
   private final CustomerCacheRepository cacheRepository;
+  private final CustomerEventPublisher eventPublisher;
 
   @Override
   public Mono<Void> delete(String id) {
@@ -37,7 +39,9 @@ public class DeleteCustomerUseCaseImpl implements DeleteCustomerUseCase {
             customer -> {
               customer.setStatus(CustomerStatus.INACTIVE);
               customer.setUpdatedAt(Instant.now());
-              return customerRepository.save(customer).then(evictCache(customer));
+              return customerRepository.save(customer)
+                  .then(evictCache(customer))
+                  .then(eventPublisher.publishCustomerDeleted(id));
             })
         .then()
         .doOnSuccess(unused -> log.info("Customer deleted successfully: {}", id))
