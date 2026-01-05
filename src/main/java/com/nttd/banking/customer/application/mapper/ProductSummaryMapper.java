@@ -29,7 +29,7 @@ public class ProductSummaryMapper {
    * @param response the products query response
    * @return the ProductSummaryDTO for the API response
    */
-  public ProductSummaryDTO toDTO(ProductsQueryResponse response) {
+  public ProductSummaryDTO toDto(ProductsQueryResponse response) {
     if (response == null) {
       return null;
     }

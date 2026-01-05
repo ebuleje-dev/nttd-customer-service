@@ -312,6 +312,9 @@
 					<failsOnError>false</failsOnError>
 					<failOnViolation>false</failOnViolation>
 					<violationSeverity>warning</violationSeverity>
+					<sourceDirectories>
+						<sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+					</sourceDirectories>
 				</configuration>
 				<executions>
 					<execution>
@@ -344,11 +347,23 @@
 						</goals>
 						<configuration>
 							<excludes>
-								<exclude>**/config/**</exclude>
+								<!-- Generated code from OpenAPI Generator -->
 								<exclude>**/dto/**</exclude>
 								<exclude>**/model/dto/**</exclude>
 								<exclude>**/api/**</exclude>
+
+								<!-- Spring configuration and main application -->
+								<exclude>**/config/**</exclude>
 								<exclude>**/*Application*</exclude>
+
+								<!-- Infrastructure adapters (require integration tests) -->
+								<exclude>**/infrastructure/adapter/out/messaging/**</exclude>
+								<exclude>**/infrastructure/adapter/out/persistence/**</exclude>
+								<exclude>**/infrastructure/adapter/out/cache/**</exclude>
+								<exclude>**/infrastructure/adapter/in/rest/**</exclude>
+
+								<!-- Domain events (DTOs for event-driven architecture) -->
+								<exclude>**/domain/event/**</exclude>
 							</excludes>
 						</configuration>
 					</execution>

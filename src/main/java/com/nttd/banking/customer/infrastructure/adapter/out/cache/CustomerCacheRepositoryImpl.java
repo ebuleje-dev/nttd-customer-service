@@ -155,8 +155,8 @@ public class CustomerCacheRepositoryImpl implements CustomerCacheRepository {
         .delete(KEY_PREFIX_EMAIL + email)
         .then()
         .doOnSuccess(unused -> log.debug("Customer evicted from cache: email={}", email))
-        .doOnError(
-            error -> log.error("Error evicting customer by email {}: {}", email, error.getMessage()));
+        .doOnError(error -> log.error(
+            "Error evicting customer by email {}: {}", email, error.getMessage()));
   }
 
   @Override

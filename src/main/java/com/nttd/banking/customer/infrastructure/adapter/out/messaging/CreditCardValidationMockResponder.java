@@ -17,11 +17,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.stereotype.Component;
 import reactor.core.Disposable;
+import reactor.core.publisher.Mono;
 import reactor.kafka.receiver.KafkaReceiver;
 import reactor.kafka.receiver.ReceiverOptions;
 import reactor.kafka.sender.KafkaSender;
 import reactor.kafka.sender.SenderRecord;
-import reactor.core.publisher.Mono;
 
 /**
  * Mock responder for credit card validation requests.
@@ -33,7 +33,8 @@ import reactor.core.publisher.Mono;
  * <p>Configuration properties:</p>
  * <ul>
  *   <li>{@code credit-card.validation.mock.enabled} - Enable/disable this mock (default: true)</li>
- *   <li>{@code credit-card.validation.mock.always-approve} - Always approve requests (default: true)</li>
+ *   <li>{@code credit-card.validation.mock.always-approve} - Always approve requests
+ *       (default: true)</li>
  * </ul>
  *
  * @author NTT Data

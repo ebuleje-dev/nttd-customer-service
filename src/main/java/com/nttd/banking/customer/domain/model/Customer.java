@@ -77,7 +77,8 @@ public abstract class Customer {
       throw new IllegalArgumentException("El número de documento es obligatorio");
     }
     if (documentNumber.length() < 8 || documentNumber.length() > 20) {
-      throw new IllegalArgumentException("El número de documento debe tener entre 8 y 20 caracteres");
+      throw new IllegalArgumentException(
+          "El número de documento debe tener entre 8 y 20 caracteres");
     }
   }
 

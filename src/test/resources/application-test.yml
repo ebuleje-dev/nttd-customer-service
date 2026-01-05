@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: customer-service
+
+  # Disable Config Server for tests
+  cloud:
+    config:
+      enabled: false
+      import-check:
+        enabled: false
+    discovery:
+      enabled: false
+
+  # Embedded MongoDB for tests (Flapdoodle)
+  data:
+    mongodb:
+      database: test_customer_db
+      # Flapdoodle will automatically configure the connection
+
+  # Redis - will be configured by Testcontainers in integration tests
+  # For unit tests, we'll mock the Redis repository
+
+  # Kafka - will be configured by @EmbeddedKafka in integration tests
+  kafka:
+    bootstrap-servers: localhost:9092
+
+# Disable Eureka for tests
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+# Logging for tests
+logging:
+  level:
+    com.nttd.banking.customer: DEBUG
+    org.springframework.data.mongodb: DEBUG
+    org.springframework.test: INFO
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

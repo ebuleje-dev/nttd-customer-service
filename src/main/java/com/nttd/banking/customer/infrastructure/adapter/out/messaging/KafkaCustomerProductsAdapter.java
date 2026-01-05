@@ -164,20 +164,20 @@ public class KafkaCustomerProductsAdapter implements CustomerProductsPort {
     // Wrap the ENTIRE flow with Circuit Breaker using Mono.defer
     // This ensures CB captures ALL errors: connection, send, timeout, etc.
     return Mono.defer(() -> {
-          ProductsQueryRequest request = ProductsQueryRequest.create(
-              customerId, customerType, activeOnly);
+      ProductsQueryRequest request = ProductsQueryRequest.create(
+          customerId, customerType, activeOnly);
 
-          log.debug("Sending products query request: correlationId={}",
-              request.getCorrelationId());
+      log.debug("Sending products query request: correlationId={}",
+          request.getCorrelationId());
 
-          Sinks.One<ProductsQueryResponse> sink = Sinks.one();
-          pendingRequests.put(request.getCorrelationId(), sink);
+      Sinks.One<ProductsQueryResponse> sink = Sinks.one();
+      pendingRequests.put(request.getCorrelationId(), sink);
 
-          return sendRequest(request)
-              .then(sink.asMono())
-              .timeout(TIMEOUT)
-              .doFinally(signal -> pendingRequests.remove(request.getCorrelationId()));
-        })
+      return sendRequest(request)
+          .then(sink.asMono())
+          .timeout(TIMEOUT)
+          .doFinally(signal -> pendingRequests.remove(request.getCorrelationId()));
+    })
         .transformDeferred(CircuitBreakerOperator.of(circuitBreaker))
         .doOnSuccess(result -> log.info(
             "Customer products query completed: customerId={}, totalProducts={}",

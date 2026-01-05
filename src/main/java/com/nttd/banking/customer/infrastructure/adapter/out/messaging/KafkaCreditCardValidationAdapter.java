@@ -115,31 +115,31 @@ public class KafkaCreditCardValidationAdapter implements CreditCardValidationPor
     // Wrap the ENTIRE flow with Circuit Breaker using Mono.defer
     // This ensures CB captures ALL errors: connection, send, timeout, etc.
     return Mono.defer(() -> {
-          log.debug("Creating validation request for customerId={}", customerId);
+      log.debug("Creating validation request for customerId={}", customerId);
 
-          CreditCardValidationRequest request = CreditCardValidationRequest.create(
-              customerId, customerType, requestedProfile);
+      CreditCardValidationRequest request = CreditCardValidationRequest.create(
+          customerId, customerType, requestedProfile);
 
-          log.debug("Sending credit card validation request: correlationId={}",
-              request.getCorrelationId());
+      log.debug("Sending credit card validation request: correlationId={}",
+          request.getCorrelationId());
 
-          Sinks.One<CreditCardValidationResponse> responseSink = Sinks.one();
-          pendingRequests.put(request.getCorrelationId(), responseSink);
+      Sinks.One<CreditCardValidationResponse> responseSink = Sinks.one();
+      pendingRequests.put(request.getCorrelationId(), responseSink);
 
-          return sendValidationRequest(request)
-              .doOnSuccess(v -> log.debug("Request sent successfully, waiting for response: "
-                  + "correlationId={}", request.getCorrelationId()))
-              .doOnError(sendError -> log.error("Failed to send request: correlationId={}, "
-                  + "error={}", request.getCorrelationId(), sendError.getMessage()))
-              .then(responseSink.asMono())
-              .timeout(VALIDATION_TIMEOUT)
-              .map(CreditCardValidationResponse::isHasActiveCreditCard)
-              .doFinally(signal -> {
-                log.debug("Cleaning up pending request: correlationId={}, signal={}",
-                    request.getCorrelationId(), signal);
-                pendingRequests.remove(request.getCorrelationId());
-              });
-        })
+      return sendValidationRequest(request)
+          .doOnSuccess(v -> log.debug("Request sent successfully, waiting for response: "
+              + "correlationId={}", request.getCorrelationId()))
+          .doOnError(sendError -> log.error("Failed to send request: correlationId={}, "
+              + "error={}", request.getCorrelationId(), sendError.getMessage()))
+          .then(responseSink.asMono())
+          .timeout(VALIDATION_TIMEOUT)
+          .map(CreditCardValidationResponse::isHasActiveCreditCard)
+          .doFinally(signal -> {
+            log.debug("Cleaning up pending request: correlationId={}, signal={}",
+                request.getCorrelationId(), signal);
+            pendingRequests.remove(request.getCorrelationId());
+          });
+    })
         .transformDeferred(CircuitBreakerOperator.of(circuitBreaker))
         .doOnSuccess(result -> log.info(
             "Credit card validation completed: customerId={}, hasActiveCreditCard={}",

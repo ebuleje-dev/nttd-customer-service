@@ -37,7 +37,8 @@ public class FindCustomerUseCaseImpl implements FindCustomerUseCase {
         .switchIfEmpty(
             customerRepository
                 .findById(id)
-                .flatMap(customer -> cacheRepository.save(customer, CACHE_TTL).thenReturn(customer)))
+                .flatMap(customer -> cacheRepository.save(customer, CACHE_TTL)
+                    .thenReturn(customer)))
         .switchIfEmpty(Mono.error(CustomerNotFoundException.byId(id)))
         .doOnSuccess(customer -> log.info("Customer found with id: {}", id))
         .doOnError(error -> log.warn("Customer not found with id: {}", id));
@@ -52,7 +53,8 @@ public class FindCustomerUseCaseImpl implements FindCustomerUseCase {
         .switchIfEmpty(
             customerRepository
                 .findByEmail(email)
-                .flatMap(customer -> cacheRepository.save(customer, CACHE_TTL).thenReturn(customer)))
+                .flatMap(customer -> cacheRepository.save(customer, CACHE_TTL)
+                    .thenReturn(customer)))
         .switchIfEmpty(Mono.error(CustomerNotFoundException.byEmail(email)))
         .doOnSuccess(customer -> log.info("Customer found with email: {}", email))
         .doOnError(error -> log.warn("Customer not found with email: {}", email));
@@ -67,7 +69,8 @@ public class FindCustomerUseCaseImpl implements FindCustomerUseCase {
         .switchIfEmpty(
             customerRepository
                 .findByDocumentNumber(documentNumber)
-                .flatMap(customer -> cacheRepository.save(customer, CACHE_TTL).thenReturn(customer)))
+                .flatMap(customer -> cacheRepository.save(customer, CACHE_TTL)
+                    .thenReturn(customer)))
         .switchIfEmpty(Mono.error(CustomerNotFoundException.byDocument(documentNumber)))
         .doOnSuccess(customer -> log.info("Customer found with document: {}", documentNumber))
         .doOnError(error -> log.warn("Customer not found with document: {}", documentNumber));

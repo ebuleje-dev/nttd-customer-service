@@ -47,15 +47,15 @@ public class CustomersApiDelegateImpl implements CustomersApiDelegate {
 
   @Override
   public Mono<ResponseEntity<CustomerResponseDTO>> createCustomer(
-      Mono<CustomerRequestDTO> customerRequestDTO, ServerWebExchange exchange) {
+      Mono<CustomerRequestDTO> customerRequestDto, ServerWebExchange exchange) {
 
     log.debug("REST: Creating new customer");
 
-    return customerRequestDTO
+    return customerRequestDto
         .doOnNext(dto -> log.debug("Request DTO received: customerType={}", dto.getCustomerType()))
         .map(customerMapper::toDomain)
         .flatMap(createCustomerUseCase::execute)
-        .map(customerMapper::toResponseDTO)
+        .map(customerMapper::toResponseDto)
         .doOnNext(dto -> log.debug("Customer created with id: {}", dto.getId()))
         .map(dto -> ResponseEntity.status(HttpStatus.CREATED).body(dto));
   }
@@ -70,7 +70,7 @@ public class CustomersApiDelegateImpl implements CustomersApiDelegate {
     log.debug("REST: Getting all customers (page={}, size={})", pageNumber, pageSize);
 
     Flux<CustomerResponseDTO> customers =
-        findCustomerUseCase.findAll(pageNumber, pageSize).map(customerMapper::toResponseDTO);
+        findCustomerUseCase.findAll(pageNumber, pageSize).map(customerMapper::toResponseDto);
 
     return Mono.just(ResponseEntity.ok(customers));
   }
@@ -83,20 +83,20 @@ public class CustomersApiDelegateImpl implements CustomersApiDelegate {
 
     return findCustomerUseCase
         .findById(id)
-        .map(customerMapper::toResponseDTO)
+        .map(customerMapper::toResponseDto)
         .map(ResponseEntity::ok);
   }
 
   @Override
   public Mono<ResponseEntity<CustomerResponseDTO>> updateCustomer(
-      String id, Mono<CustomerUpdateDTO> customerUpdateDTO, ServerWebExchange exchange) {
+      String id, Mono<CustomerUpdateDTO> customerUpdateDto, ServerWebExchange exchange) {
 
     log.debug("REST: Updating customer with id: {}", id);
 
-    return customerUpdateDTO
-        .map(this::mapUpdateDTOToPartialCustomer)
+    return customerUpdateDto
+        .map(this::mapUpdateDtoToPartialCustomer)
         .flatMap(updates -> updateCustomerUseCase.update(id, updates))
-        .map(customerMapper::toResponseDTO)
+        .map(customerMapper::toResponseDto)
         .map(ResponseEntity::ok);
   }
 
@@ -112,20 +112,21 @@ public class CustomersApiDelegateImpl implements CustomersApiDelegate {
 
   @Override
   public Mono<ResponseEntity<CustomerResponseDTO>> updateCustomerProfile(
-      String id, Mono<ProfileUpdateDTO> profileUpdateDTO, ServerWebExchange exchange) {
+      String id, Mono<ProfileUpdateDTO> profileUpdateDto, ServerWebExchange exchange) {
 
     log.info("REST: Updating profile for customer with id: {}", id);
 
-    return profileUpdateDTO
+    return profileUpdateDto
         .doOnNext(dto -> log.debug("Received profile update request: profileType={}",
             dto.getProfileType()))
         .map(dto -> dto.getProfileType().getValue())
-        .doOnNext(profileType -> log.debug("Extracted profileType={}, calling use case", profileType))
+        .doOnNext(profileType -> log.debug(
+            "Extracted profileType={}, calling use case", profileType))
         .flatMap(profileType -> updateProfileUseCase.updateProfile(id, profileType))
         .doOnSuccess(customer -> log.info("Profile update successful for customer: {}", id))
         .doOnError(error -> log.error("Profile update failed for customer {}: {} [{}]",
             id, error.getMessage(), error.getClass().getSimpleName()))
-        .map(customerMapper::toResponseDTO)
+        .map(customerMapper::toResponseDto)
         .map(ResponseEntity::ok);
   }
 
@@ -137,7 +138,7 @@ public class CustomersApiDelegateImpl implements CustomersApiDelegate {
 
     return findCustomerUseCase
         .findByDocumentNumber(documentNumber)
-        .map(customerMapper::toResponseDTO)
+        .map(customerMapper::toResponseDto)
         .map(ResponseEntity::ok);
   }
 
@@ -149,7 +150,7 @@ public class CustomersApiDelegateImpl implements CustomersApiDelegate {
 
     return findCustomerUseCase
         .findByEmail(email)
-        .map(customerMapper::toResponseDTO)
+        .map(customerMapper::toResponseDto)
         .map(ResponseEntity::ok);
   }
 
@@ -169,13 +170,13 @@ public class CustomersApiDelegateImpl implements CustomersApiDelegate {
 
     return getCustomerProductsUseCase
         .getProducts(id)
-        .map(productSummaryMapper::toDTO)
+        .map(productSummaryMapper::toDto)
         .doOnSuccess(dto -> log.debug("Retrieved {} products for customer: {}",
             dto.getTotalProducts(), id))
         .map(ResponseEntity::ok);
   }
 
-  private Customer mapUpdateDTOToPartialCustomer(CustomerUpdateDTO dto) {
+  private Customer mapUpdateDtoToPartialCustomer(CustomerUpdateDTO dto) {
     return PersonalCustomer.builder()
         .email(dto.getEmail())
         .phoneNumber(dto.getPhoneNumber())

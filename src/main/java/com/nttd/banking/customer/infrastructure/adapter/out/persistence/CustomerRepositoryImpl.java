@@ -106,7 +106,8 @@ public class CustomerRepositoryImpl implements CustomerRepository {
         .skip(skip)
         .take(size)
         .map(mapper::toDomain)
-        .doOnComplete(() -> log.debug("Finished retrieving customers page={}, size={}", page, size));
+        .doOnComplete(() -> log.debug(
+            "Finished retrieving customers page={}, size={}", page, size));
   }
 
   @Override

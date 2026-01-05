@@ -105,20 +105,20 @@ public class CustomerMapper {
    * @param customer domain object
    * @return response DTO
    */
-  public CustomerResponseDTO toResponseDTO(Customer customer) {
+  public CustomerResponseDTO toResponseDto(Customer customer) {
     if (customer == null) {
       return null;
     }
 
     CustomerResponseDTO dto = new CustomerResponseDTO();
     dto.setId(customer.getId());
-    dto.setCustomerType(mapCustomerTypeToDTO(customer.getCustomerType()));
-    dto.setDocumentType(mapDocumentTypeToDTO(customer.getDocumentType()));
+    dto.setCustomerType(mapCustomerTypeToDto(customer.getCustomerType()));
+    dto.setDocumentType(mapDocumentTypeToDto(customer.getDocumentType()));
     dto.setDocumentNumber(customer.getDocumentNumber());
     dto.setEmail(customer.getEmail());
     dto.setPhoneNumber(customer.getPhoneNumber());
     dto.setAddress(customer.getAddress());
-    dto.setStatus(mapCustomerStatusToDTO(customer.getStatus()));
+    dto.setStatus(mapCustomerStatusToDto(customer.getStatus()));
     dto.setCreatedAt(instantToOffsetDateTime(customer.getCreatedAt()));
     dto.setUpdatedAt(instantToOffsetDateTime(customer.getUpdatedAt()));
 
@@ -128,27 +128,27 @@ public class CustomerMapper {
       dto.setDateOfBirth(instantToOffsetDateTime(personalCustomer.getDateOfBirth()));
       dto.setGender(
           personalCustomer.getGender() != null
-              ? mapGenderToDTO(personalCustomer.getGender())
+              ? mapGenderToDto(personalCustomer.getGender())
               : null);
       dto.setPersonalProfile(
           personalCustomer.getPersonalProfile() != null
-              ? mapPersonalProfileToDTO(personalCustomer.getPersonalProfile())
+              ? mapPersonalProfileToDto(personalCustomer.getPersonalProfile())
               : null);
     } else if (customer instanceof BusinessCustomer businessCustomer) {
       dto.setBusinessName(businessCustomer.getBusinessName());
       dto.setBusinessType(
           businessCustomer.getBusinessType() != null
-              ? mapBusinessTypeToDTO(businessCustomer.getBusinessType())
+              ? mapBusinessTypeToDto(businessCustomer.getBusinessType())
               : null);
       dto.setTaxId(businessCustomer.getTaxId());
       dto.setBusinessProfile(
           businessCustomer.getBusinessProfile() != null
-              ? mapBusinessProfileToDTO(businessCustomer.getBusinessProfile())
+              ? mapBusinessProfileToDto(businessCustomer.getBusinessProfile())
               : null);
       dto.setAuthorizedSigners(
           businessCustomer.getAuthorizedSigners() != null
               ? businessCustomer.getAuthorizedSigners().stream()
-                  .map(this::mapAuthorizedSignerToDTO)
+                  .map(this::mapAuthorizedSignerToDto)
                   .collect(Collectors.toList())
               : Collections.emptyList());
     }
@@ -160,7 +160,7 @@ public class CustomerMapper {
     return DocumentType.valueOf(dto.getValue());
   }
 
-  private CustomerResponseDTO.DocumentTypeEnum mapDocumentTypeToDTO(DocumentType domain) {
+  private CustomerResponseDTO.DocumentTypeEnum mapDocumentTypeToDto(DocumentType domain) {
     return CustomerResponseDTO.DocumentTypeEnum.fromValue(domain.name());
   }
 
@@ -168,7 +168,7 @@ public class CustomerMapper {
     return Gender.valueOf(dto.getValue());
   }
 
-  private CustomerResponseDTO.GenderEnum mapGenderToDTO(Gender domain) {
+  private CustomerResponseDTO.GenderEnum mapGenderToDto(Gender domain) {
     return CustomerResponseDTO.GenderEnum.fromValue(domain.name());
   }
 
@@ -176,7 +176,7 @@ public class CustomerMapper {
     return PersonalProfile.valueOf(dto.getValue());
   }
 
-  private CustomerResponseDTO.PersonalProfileEnum mapPersonalProfileToDTO(
+  private CustomerResponseDTO.PersonalProfileEnum mapPersonalProfileToDto(
       PersonalProfile domain) {
     return CustomerResponseDTO.PersonalProfileEnum.fromValue(domain.name());
   }
@@ -185,7 +185,7 @@ public class CustomerMapper {
     return BusinessType.valueOf(dto.getValue());
   }
 
-  private CustomerResponseDTO.BusinessTypeEnum mapBusinessTypeToDTO(BusinessType domain) {
+  private CustomerResponseDTO.BusinessTypeEnum mapBusinessTypeToDto(BusinessType domain) {
     return CustomerResponseDTO.BusinessTypeEnum.fromValue(domain.name());
   }
 
@@ -193,16 +193,16 @@ public class CustomerMapper {
     return BusinessProfile.valueOf(dto.getValue());
   }
 
-  private CustomerResponseDTO.BusinessProfileEnum mapBusinessProfileToDTO(
+  private CustomerResponseDTO.BusinessProfileEnum mapBusinessProfileToDto(
       BusinessProfile domain) {
     return CustomerResponseDTO.BusinessProfileEnum.fromValue(domain.name());
   }
 
-  private CustomerResponseDTO.CustomerTypeEnum mapCustomerTypeToDTO(CustomerType domain) {
+  private CustomerResponseDTO.CustomerTypeEnum mapCustomerTypeToDto(CustomerType domain) {
     return CustomerResponseDTO.CustomerTypeEnum.fromValue(domain.name());
   }
 
-  private CustomerResponseDTO.StatusEnum mapCustomerStatusToDTO(CustomerStatus domain) {
+  private CustomerResponseDTO.StatusEnum mapCustomerStatusToDto(CustomerStatus domain) {
     return CustomerResponseDTO.StatusEnum.fromValue(domain.name());
   }
 
@@ -220,7 +220,7 @@ public class CustomerMapper {
         .build();
   }
 
-  private AuthorizedSignerDTO mapAuthorizedSignerToDTO(AuthorizedSigner domain) {
+  private AuthorizedSignerDTO mapAuthorizedSignerToDto(AuthorizedSigner domain) {
     if (domain == null) {
       return null;
     }
