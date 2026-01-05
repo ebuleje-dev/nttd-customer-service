@@ -32,6 +32,43 @@
         <jacoco.version>0.8.12</jacoco.version>
         <resilience4j.version>2.2.0</resilience4j.version>
         <checkstyle.version>3.3.1</checkstyle.version>
+        <sonar.version>4.0.0.4121</sonar.version>
+
+        <!-- SonarQube Configuration -->
+        <sonar.projectKey>nttd-customer-service</sonar.projectKey>
+        <sonar.projectName>NTT Data - Customer Service</sonar.projectName>
+        <sonar.host.url>http://localhost:8081</sonar.host.url>
+        <sonar.login>sqa_dd29e1171a24bf79d972cee747860b576b8d41e4</sonar.login>
+        <sonar.java.source>17</sonar.java.source>
+        <sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
+
+        <!-- JaCoCo report path for SonarQube -->
+        <sonar.coverage.jacoco.xmlReportPaths>
+            ${project.build.directory}/site/jacoco/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
+
+        <!-- Exclude generated code and configuration from SonarQube analysis -->
+        <sonar.exclusions>
+            **/target/generated-sources/**,
+            **/com/nttd/banking/customer/api/**,
+            **/com/nttd/banking/customer/model/dto/**,
+            **/config/**,
+            **/*Application.java,
+            **/infrastructure/adapter/out/messaging/**,
+            **/infrastructure/adapter/out/persistence/**,
+            **/infrastructure/adapter/out/cache/**,
+            **/infrastructure/adapter/in/rest/**,
+            **/domain/event/**
+        </sonar.exclusions>
+
+        <!-- Exclude tests from duplications -->
+        <sonar.cpd.exclusions>
+            **/test/**
+        </sonar.cpd.exclusions>
+
+        <!-- Source and test directories -->
+        <sonar.sources>src/main/java</sonar.sources>
+        <sonar.tests>src/test/java</sonar.tests>
     </properties>
 
     <dependencyManagement>
@@ -392,6 +429,13 @@
 					</execution>
 					-->
 				</executions>
+			</plugin>
+
+			<!-- SonarQube Plugin -->
+			<plugin>
+				<groupId>org.sonarsource.scanner.maven</groupId>
+				<artifactId>sonar-maven-plugin</artifactId>
+				<version>${sonar.version}</version>
 			</plugin>
 		</plugins>
 	</build>
