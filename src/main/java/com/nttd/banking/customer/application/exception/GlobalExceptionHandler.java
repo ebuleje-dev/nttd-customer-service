@@ -4,6 +4,7 @@ import com.nttd.banking.customer.model.dto.ErrorResponse;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -70,6 +71,29 @@ public class GlobalExceptionHandler {
   }
 
   /**
+   * Handles ProfileUpdateNotAllowedException.
+   *
+   * @param ex the exception
+   * @param exchange request information
+   * @return ResponseEntity with 400 status
+   */
+  @ExceptionHandler(ProfileUpdateNotAllowedException.class)
+  public ResponseEntity<ErrorResponse> handleProfileUpdateNotAllowed(
+      ProfileUpdateNotAllowedException ex, ServerWebExchange exchange) {
+    log.warn("Profile update not allowed: {}", ex.getMessage());
+
+    ErrorResponse error =
+        new ErrorResponse(
+            OffsetDateTime.now(),
+            HttpStatus.BAD_REQUEST.value(),
+            "Profile Update Not Allowed",
+            ex.getMessage(),
+            exchange.getRequest().getPath().value());
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+  }
+
+  /**
    * Handles BusinessValidationException.
    *
    * @param ex the exception
@@ -90,6 +114,29 @@ public class GlobalExceptionHandler {
             exchange.getRequest().getPath().value());
 
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+  }
+
+  /**
+   * Handles TimeoutException from async operations.
+   *
+   * @param ex the exception
+   * @param exchange request information
+   * @return ResponseEntity with 504 status
+   */
+  @ExceptionHandler(TimeoutException.class)
+  public ResponseEntity<ErrorResponse> handleTimeout(
+      TimeoutException ex, ServerWebExchange exchange) {
+    log.error("Operation timed out: {}", ex.getMessage());
+
+    ErrorResponse error =
+        new ErrorResponse(
+            OffsetDateTime.now(),
+            HttpStatus.GATEWAY_TIMEOUT.value(),
+            HttpStatus.GATEWAY_TIMEOUT.getReasonPhrase(),
+            "The operation timed out. Please try again later.",
+            exchange.getRequest().getPath().value());
+
+    return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT).body(error);
   }
 
   /**
