@@ -71,6 +71,30 @@ public class GlobalExceptionHandler {
   }
 
   /**
+   * Handles CustomerHasActiveProductsException.
+   * Thrown when attempting to delete a customer with active products.
+   *
+   * @param ex the exception
+   * @param exchange request information
+   * @return ResponseEntity with 409 status
+   */
+  @ExceptionHandler(CustomerHasActiveProductsException.class)
+  public ResponseEntity<ErrorResponse> handleCustomerHasActiveProducts(
+      CustomerHasActiveProductsException ex, ServerWebExchange exchange) {
+    log.warn("Cannot delete customer with active products: {}", ex.getMessage());
+
+    ErrorResponse error =
+        new ErrorResponse(
+            OffsetDateTime.now(),
+            HttpStatus.CONFLICT.value(),
+            "Customer Has Active Products",
+            ex.getMessage(),
+            exchange.getRequest().getPath().value());
+
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+  }
+
+  /**
    * Handles ProfileUpdateNotAllowedException.
    *
    * @param ex the exception
