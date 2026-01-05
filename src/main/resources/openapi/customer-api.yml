@@ -272,6 +272,37 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /customers/{id}/products:
+    get:
+      tags:
+        - Customers
+      summary: Obtener productos del cliente
+      description: |
+        Retorna un resumen de todos los productos bancarios del cliente.
+        Consulta via Kafka a account-service, credit-service y card-service.
+        Actualmente retorna mock data hasta que los servicios estén disponibles.
+      operationId: getCustomerProducts
+      parameters:
+        - name: id
+          in: path
+          description: ID del cliente
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Productos del cliente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductSummaryDTO'
+        '404':
+          description: Cliente no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
     CustomerRequestDTO:
@@ -580,3 +611,153 @@ components:
           description: Detalles adicionales del error (ej. validaciones)
           items:
             type: string
+
+    ProductSummaryDTO:
+      type: object
+      required:
+        - customerId
+        - queryTimestamp
+      properties:
+        customerId:
+          type: string
+          description: ID del cliente
+        queryTimestamp:
+          type: string
+          format: date-time
+          description: Timestamp de la consulta
+        accounts:
+          type: array
+          description: Lista de cuentas bancarias del cliente
+          items:
+            $ref: '#/components/schemas/AccountSummaryDTO'
+        credits:
+          type: array
+          description: Lista de créditos del cliente
+          items:
+            $ref: '#/components/schemas/CreditSummaryDTO'
+        cards:
+          $ref: '#/components/schemas/CardsSummaryDTO'
+        hasActiveProducts:
+          type: boolean
+          description: Indica si el cliente tiene productos activos
+        totalProducts:
+          type: integer
+          description: Cantidad total de productos
+
+    AccountSummaryDTO:
+      type: object
+      properties:
+        accountId:
+          type: string
+          description: ID de la cuenta
+        accountNumber:
+          type: string
+          description: Número de cuenta
+        accountType:
+          type: string
+          enum: [SAVINGS, CHECKING, FIXED_TERM]
+          description: Tipo de cuenta
+        currency:
+          type: string
+          enum: [PEN, USD]
+          description: Moneda
+        balance:
+          type: number
+          format: double
+          description: Saldo disponible
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, BLOCKED]
+          description: Estado de la cuenta
+
+    CreditSummaryDTO:
+      type: object
+      properties:
+        creditId:
+          type: string
+          description: ID del crédito
+        creditType:
+          type: string
+          enum: [PERSONAL, BUSINESS, CREDIT_CARD]
+          description: Tipo de crédito
+        creditLimit:
+          type: number
+          format: double
+          description: Límite de crédito
+        usedAmount:
+          type: number
+          format: double
+          description: Monto utilizado
+        availableAmount:
+          type: number
+          format: double
+          description: Monto disponible
+        currency:
+          type: string
+          enum: [PEN, USD]
+          description: Moneda
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, PAID, DEFAULTED]
+          description: Estado del crédito
+
+    CardsSummaryDTO:
+      type: object
+      properties:
+        creditCards:
+          type: array
+          description: Lista de tarjetas de crédito
+          items:
+            $ref: '#/components/schemas/CreditCardSummaryDTO'
+        debitCards:
+          type: array
+          description: Lista de tarjetas de débito
+          items:
+            $ref: '#/components/schemas/DebitCardSummaryDTO'
+
+    CreditCardSummaryDTO:
+      type: object
+      properties:
+        cardId:
+          type: string
+          description: ID de la tarjeta
+        cardNumber:
+          type: string
+          description: Número de tarjeta (masked)
+        cardType:
+          type: string
+          enum: [VISA, MASTERCARD, AMEX]
+          description: Tipo de tarjeta
+        creditLimit:
+          type: number
+          format: double
+          description: Límite de crédito
+        availableCredit:
+          type: number
+          format: double
+          description: Crédito disponible
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, BLOCKED, EXPIRED]
+          description: Estado de la tarjeta
+
+    DebitCardSummaryDTO:
+      type: object
+      properties:
+        cardId:
+          type: string
+          description: ID de la tarjeta
+        cardNumber:
+          type: string
+          description: Número de tarjeta (masked)
+        cardType:
+          type: string
+          enum: [VISA, MASTERCARD]
+          description: Tipo de tarjeta
+        linkedAccountId:
+          type: string
+          description: ID de la cuenta vinculada
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, BLOCKED, EXPIRED]
+          description: Estado de la tarjeta

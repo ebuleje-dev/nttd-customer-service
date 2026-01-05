@@ -2,16 +2,19 @@ package com.nttd.banking.customer.infrastructure.adapter.in.rest;
 
 import com.nttd.banking.customer.api.CustomersApiDelegate;
 import com.nttd.banking.customer.application.mapper.CustomerMapper;
+import com.nttd.banking.customer.application.mapper.ProductSummaryMapper;
 import com.nttd.banking.customer.domain.model.Customer;
 import com.nttd.banking.customer.domain.model.PersonalCustomer;
 import com.nttd.banking.customer.domain.port.in.CreateCustomerUseCase;
 import com.nttd.banking.customer.domain.port.in.DeleteCustomerUseCase;
 import com.nttd.banking.customer.domain.port.in.FindCustomerUseCase;
+import com.nttd.banking.customer.domain.port.in.GetCustomerProductsUseCase;
 import com.nttd.banking.customer.domain.port.in.UpdateCustomerUseCase;
 import com.nttd.banking.customer.domain.port.in.UpdateProfileUseCase;
 import com.nttd.banking.customer.model.dto.CustomerRequestDTO;
 import com.nttd.banking.customer.model.dto.CustomerResponseDTO;
 import com.nttd.banking.customer.model.dto.CustomerUpdateDTO;
+import com.nttd.banking.customer.model.dto.ProductSummaryDTO;
 import com.nttd.banking.customer.model.dto.ProfileUpdateDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +41,9 @@ public class CustomersApiDelegateImpl implements CustomersApiDelegate {
   private final UpdateCustomerUseCase updateCustomerUseCase;
   private final DeleteCustomerUseCase deleteCustomerUseCase;
   private final UpdateProfileUseCase updateProfileUseCase;
+  private final GetCustomerProductsUseCase getCustomerProductsUseCase;
   private final CustomerMapper customerMapper;
+  private final ProductSummaryMapper productSummaryMapper;
 
   @Override
   public Mono<ResponseEntity<CustomerResponseDTO>> createCustomer(
@@ -139,6 +144,28 @@ public class CustomersApiDelegateImpl implements CustomersApiDelegate {
     return findCustomerUseCase
         .findByEmail(email)
         .map(customerMapper::toResponseDTO)
+        .map(ResponseEntity::ok);
+  }
+
+  /**
+   * Gets all products for a customer from external microservices.
+   * Queries account-service, credit-service, and card-service via Kafka.
+   *
+   * @param id       the customer ID
+   * @param exchange the server web exchange
+   * @return a Mono emitting the ResponseEntity with ProductSummaryDTO
+   */
+  @Override
+  public Mono<ResponseEntity<ProductSummaryDTO>> getCustomerProducts(
+      String id, ServerWebExchange exchange) {
+
+    log.debug("REST: Getting products for customer: {}", id);
+
+    return getCustomerProductsUseCase
+        .getProducts(id)
+        .map(productSummaryMapper::toDTO)
+        .doOnSuccess(dto -> log.debug("Retrieved {} products for customer: {}",
+            dto.getTotalProducts(), id))
         .map(ResponseEntity::ok);
   }
 

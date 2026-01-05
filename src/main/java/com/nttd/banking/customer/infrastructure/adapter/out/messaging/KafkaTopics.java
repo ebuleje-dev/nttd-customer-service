@@ -31,4 +31,16 @@ public final class KafkaTopics {
    * Topic for credit card validation responses.
    */
   public static final String CREDIT_CARD_VALIDATION_RESPONSE = "credit-card-validation-response";
+
+  /**
+   * Topic for customer products query requests.
+   * Used to query account-service, credit-service, and card-service.
+   */
+  public static final String CUSTOMER_PRODUCTS_REQUEST = "customer-products-request";
+
+  /**
+   * Topic for customer products query responses.
+   * Receives aggregated product information from other microservices.
+   */
+  public static final String CUSTOMER_PRODUCTS_RESPONSE = "customer-products-response";
 }
