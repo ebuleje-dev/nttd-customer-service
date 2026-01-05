@@ -114,11 +114,17 @@ public class CustomersApiDelegateImpl implements CustomersApiDelegate {
   public Mono<ResponseEntity<CustomerResponseDTO>> updateCustomerProfile(
       String id, Mono<ProfileUpdateDTO> profileUpdateDTO, ServerWebExchange exchange) {
 
-    log.debug("REST: Updating profile for customer with id: {}", id);
+    log.info("REST: Updating profile for customer with id: {}", id);
 
     return profileUpdateDTO
+        .doOnNext(dto -> log.debug("Received profile update request: profileType={}",
+            dto.getProfileType()))
         .map(dto -> dto.getProfileType().getValue())
+        .doOnNext(profileType -> log.debug("Extracted profileType={}, calling use case", profileType))
         .flatMap(profileType -> updateProfileUseCase.updateProfile(id, profileType))
+        .doOnSuccess(customer -> log.info("Profile update successful for customer: {}", id))
+        .doOnError(error -> log.error("Profile update failed for customer {}: {} [{}]",
+            id, error.getMessage(), error.getClass().getSimpleName()))
         .map(customerMapper::toResponseDTO)
         .map(ResponseEntity::ok);
   }

@@ -1,6 +1,8 @@
 package com.nttd.banking.customer.application.exception;
 
 import com.nttd.banking.customer.model.dto.ErrorResponse;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -164,6 +166,55 @@ public class GlobalExceptionHandler {
   }
 
   /**
+   * Handles CallNotPermittedException from Circuit Breaker.
+   * This exception is thrown when the circuit breaker is in OPEN state.
+   *
+   * @param ex the exception
+   * @param exchange request information
+   * @return ResponseEntity with 503 status
+   */
+  @ExceptionHandler(CallNotPermittedException.class)
+  public ResponseEntity<ErrorResponse> handleCircuitBreakerOpen(
+      CallNotPermittedException ex, ServerWebExchange exchange) {
+    log.warn("Circuit breaker is OPEN: {}", ex.getMessage());
+
+    ErrorResponse error =
+        new ErrorResponse(
+            OffsetDateTime.now(),
+            HttpStatus.SERVICE_UNAVAILABLE.value(),
+            "Service Temporarily Unavailable",
+            "The service is temporarily unavailable due to high error rate. "
+                + "Please try again later.",
+            exchange.getRequest().getPath().value());
+
+    return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+  }
+
+  /**
+   * Handles RequestNotPermitted from Rate Limiter.
+   * This exception is thrown when the rate limit is exceeded.
+   *
+   * @param ex the exception
+   * @param exchange request information
+   * @return ResponseEntity with 429 status
+   */
+  @ExceptionHandler(RequestNotPermitted.class)
+  public ResponseEntity<ErrorResponse> handleRateLimitExceeded(
+      RequestNotPermitted ex, ServerWebExchange exchange) {
+    log.warn("Rate limit exceeded: {}", ex.getMessage());
+
+    ErrorResponse error =
+        new ErrorResponse(
+            OffsetDateTime.now(),
+            HttpStatus.TOO_MANY_REQUESTS.value(),
+            "Too Many Requests",
+            "Rate limit exceeded. Please wait before making more requests.",
+            exchange.getRequest().getPath().value());
+
+    return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(error);
+  }
+
+  /**
    * Handles Bean Validation exceptions.
    *
    * @param ex the exception
@@ -216,7 +267,34 @@ public class GlobalExceptionHandler {
   }
 
   /**
-   * Handles any uncaught exception.
+   * Handles ResponseStatusException from WebFlux.
+   *
+   * @param ex the exception
+   * @param exchange request information
+   * @return ResponseEntity with the status from the exception
+   */
+  @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+  public ResponseEntity<ErrorResponse> handleResponseStatusException(
+      org.springframework.web.server.ResponseStatusException ex, ServerWebExchange exchange) {
+    log.warn("ResponseStatusException: {} {} - {} [{}]",
+        exchange.getRequest().getMethod(),
+        exchange.getRequest().getPath().value(),
+        ex.getStatusCode(),
+        ex.getReason());
+
+    ErrorResponse error =
+        new ErrorResponse(
+            OffsetDateTime.now(),
+            ex.getStatusCode().value(),
+            ex.getStatusCode().toString(),
+            ex.getReason() != null ? ex.getReason() : "Request processing error",
+            exchange.getRequest().getPath().value());
+
+    return ResponseEntity.status(ex.getStatusCode()).body(error);
+  }
+
+  /**
+   * Handles any uncaught RuntimeException.
    *
    * @param ex the exception
    * @param exchange request information
@@ -225,7 +303,40 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(RuntimeException.class)
   public ResponseEntity<ErrorResponse> handleGenericError(
       RuntimeException ex, ServerWebExchange exchange) {
-    log.error("Unexpected error occurred", ex);
+    log.error("Unexpected RuntimeException: {} {} - {} [{}]",
+        exchange.getRequest().getMethod(),
+        exchange.getRequest().getPath().value(),
+        ex.getMessage(),
+        ex.getClass().getSimpleName(),
+        ex);
+
+    ErrorResponse error =
+        new ErrorResponse(
+            OffsetDateTime.now(),
+            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+            "An unexpected error occurred. Please contact support.",
+            exchange.getRequest().getPath().value());
+
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+  }
+
+  /**
+   * Handles any uncaught Exception (catch-all).
+   *
+   * @param ex the exception
+   * @param exchange request information
+   * @return ResponseEntity with 500 status
+   */
+  @ExceptionHandler(Exception.class)
+  public ResponseEntity<ErrorResponse> handleAllExceptions(
+      Exception ex, ServerWebExchange exchange) {
+    log.error("Catch-all exception handler: {} {} - {} [{}]",
+        exchange.getRequest().getMethod(),
+        exchange.getRequest().getPath().value(),
+        ex.getMessage(),
+        ex.getClass().getSimpleName(),
+        ex);
 
     ErrorResponse error =
         new ErrorResponse(

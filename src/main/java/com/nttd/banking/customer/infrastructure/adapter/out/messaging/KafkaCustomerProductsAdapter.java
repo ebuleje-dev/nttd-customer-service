@@ -3,6 +3,8 @@ package com.nttd.banking.customer.infrastructure.adapter.out.messaging;
 import com.nttd.banking.customer.domain.event.ProductsQueryRequest;
 import com.nttd.banking.customer.domain.event.ProductsQueryResponse;
 import com.nttd.banking.customer.domain.port.out.CustomerProductsPort;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.time.Duration;
@@ -14,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.stereotype.Component;
@@ -43,6 +46,7 @@ public class KafkaCustomerProductsAdapter implements CustomerProductsPort {
   private static final Duration TIMEOUT = Duration.ofSeconds(30);
 
   private final KafkaSender<String, Object> kafkaSender;
+  private final CircuitBreaker circuitBreaker;
   private final String bootstrapServers;
   private final String consumerGroupId;
 
@@ -55,15 +59,18 @@ public class KafkaCustomerProductsAdapter implements CustomerProductsPort {
   /**
    * Constructor for the Kafka products adapter.
    *
-   * @param kafkaSender     the Kafka sender
+   * @param kafkaSender      the Kafka sender
+   * @param circuitBreaker   the circuit breaker for customer products queries
    * @param bootstrapServers the Kafka bootstrap servers
    * @param consumerGroupId  the consumer group ID
    */
   public KafkaCustomerProductsAdapter(
       KafkaSender<String, Object> kafkaSender,
+      @Qualifier("customerProductsCircuitBreaker") CircuitBreaker circuitBreaker,
       @Value("${spring.kafka.bootstrap-servers:localhost:9092}") String bootstrapServers,
       @Value("${spring.kafka.consumer.group-id:customer-service-group}") String consumerGroupId) {
     this.kafkaSender = kafkaSender;
+    this.circuitBreaker = circuitBreaker;
     this.bootstrapServers = bootstrapServers;
     this.consumerGroupId = consumerGroupId;
   }
@@ -151,28 +158,58 @@ public class KafkaCustomerProductsAdapter implements CustomerProductsPort {
       String customerType,
       boolean activeOnly) {
 
-    ProductsQueryRequest request = ProductsQueryRequest.create(
-        customerId, customerType, activeOnly);
+    log.debug("Querying customer products: customerId={}, circuitBreaker={}",
+        customerId, circuitBreaker.getState());
 
-    log.debug("Sending products query request: customerId={}, correlationId={}",
-        customerId, request.getCorrelationId());
+    // Wrap the ENTIRE flow with Circuit Breaker using Mono.defer
+    // This ensures CB captures ALL errors: connection, send, timeout, etc.
+    return Mono.defer(() -> {
+          ProductsQueryRequest request = ProductsQueryRequest.create(
+              customerId, customerType, activeOnly);
 
-    Sinks.One<ProductsQueryResponse> sink = Sinks.one();
-    pendingRequests.put(request.getCorrelationId(), sink);
+          log.debug("Sending products query request: correlationId={}",
+              request.getCorrelationId());
 
-    return sendRequest(request)
-        .then(sink.asMono()
-            .timeout(TIMEOUT)
-            .doOnError(error -> {
-              pendingRequests.remove(request.getCorrelationId());
-              log.error("Error or timeout waiting for products query response: "
-                  + "customerId={}, correlationId={}", customerId, request.getCorrelationId());
-            })
-            .onErrorResume(error -> {
-              log.warn("Returning empty products due to error: {}", error.getMessage());
-              return Mono.just(ProductsQueryResponse.empty(
-                  request.getCorrelationId(), customerId));
-            }));
+          Sinks.One<ProductsQueryResponse> sink = Sinks.one();
+          pendingRequests.put(request.getCorrelationId(), sink);
+
+          return sendRequest(request)
+              .then(sink.asMono())
+              .timeout(TIMEOUT)
+              .doFinally(signal -> pendingRequests.remove(request.getCorrelationId()));
+        })
+        .transformDeferred(CircuitBreakerOperator.of(circuitBreaker))
+        .doOnSuccess(result -> log.info(
+            "Customer products query completed: customerId={}, totalProducts={}",
+            customerId, result.getTotalProducts()))
+        .doOnError(error -> log.error(
+            "Customer products query failed for customerId={}: {}",
+            customerId, error.getMessage()))
+        .onErrorResume(error -> handleCircuitBreakerError(error, customerId));
+  }
+
+  /**
+   * Handles circuit breaker and other errors with appropriate fallback.
+   *
+   * @param error      the error to handle
+   * @param customerId the customer ID
+   * @return fallback response with empty products
+   */
+  private Mono<ProductsQueryResponse> handleCircuitBreakerError(
+      Throwable error,
+      String customerId) {
+
+    if (error instanceof io.github.resilience4j.circuitbreaker.CallNotPermittedException) {
+      log.warn("Circuit breaker is OPEN for customer products query. "
+          + "Returning empty products for customerId={}", customerId);
+    } else if (error instanceof java.util.concurrent.TimeoutException) {
+      log.warn("Customer products query timeout for customerId={}. "
+          + "Returning empty products", customerId);
+    } else {
+      log.error("Customer products query error for customerId={}: {}. "
+          + "Returning empty products", customerId, error.getMessage());
+    }
+    return Mono.just(ProductsQueryResponse.empty("fallback", customerId));
   }
 
   /**

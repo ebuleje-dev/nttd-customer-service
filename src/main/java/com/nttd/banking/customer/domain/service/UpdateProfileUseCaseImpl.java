@@ -137,7 +137,16 @@ public class UpdateProfileUseCaseImpl implements UpdateProfileUseCase {
             customer.getId(),
             customer.getCustomerType().name(),
             "VIP")
+        .doOnSubscribe(s -> log.debug("Starting credit card validation for customer: {}",
+            customer.getId()))
+        .doOnSuccess(result -> log.debug("Credit card validation returned: {} for customer: {}",
+            result, customer.getId()))
+        .doOnError(error -> log.error("Credit card validation error for customer {}: {} [{}]",
+            customer.getId(), error.getMessage(), error.getClass().getSimpleName()))
         .flatMap(hasActiveCreditCard -> {
+          log.debug("Processing validation result: hasActiveCreditCard={} for customer: {}",
+              hasActiveCreditCard, customer.getId());
+
           if (!hasActiveCreditCard) {
             log.warn("VIP upgrade rejected: customer {} has no active credit card",
                 customer.getId());
@@ -176,7 +185,16 @@ public class UpdateProfileUseCaseImpl implements UpdateProfileUseCase {
             customer.getId(),
             customer.getCustomerType().name(),
             "PYME")
+        .doOnSubscribe(s -> log.debug("Starting credit card validation for customer: {}",
+            customer.getId()))
+        .doOnSuccess(result -> log.debug("Credit card validation returned: {} for customer: {}",
+            result, customer.getId()))
+        .doOnError(error -> log.error("Credit card validation error for customer {}: {} [{}]",
+            customer.getId(), error.getMessage(), error.getClass().getSimpleName()))
         .flatMap(hasActiveCreditCard -> {
+          log.debug("Processing validation result: hasActiveCreditCard={} for customer: {}",
+              hasActiveCreditCard, customer.getId());
+
           if (!hasActiveCreditCard) {
             log.warn("PYME upgrade rejected: customer {} has no active credit card",
                 customer.getId());
