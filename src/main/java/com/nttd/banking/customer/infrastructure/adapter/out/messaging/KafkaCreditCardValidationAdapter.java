@@ -37,7 +37,10 @@ public class KafkaCreditCardValidationAdapter implements CreditCardValidationPor
   private final KafkaReceiver<String, CreditCardValidationResponse> validationResponseReceiver;
   private final CircuitBreaker circuitBreaker;
 
-  private static final Duration VALIDATION_TIMEOUT = Duration.ofSeconds(30);
+  /**
+   * Timeout for validation operations.
+   */
+  private static final Duration VALIDATION_TIMEOUT = Duration.ofSeconds(5);
 
   /**
    * Constructor with dependencies.

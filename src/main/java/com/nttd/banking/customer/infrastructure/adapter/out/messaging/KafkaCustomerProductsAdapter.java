@@ -43,7 +43,10 @@ import reactor.kafka.sender.SenderRecord;
 @Component
 public class KafkaCustomerProductsAdapter implements CustomerProductsPort {
 
-  private static final Duration TIMEOUT = Duration.ofSeconds(30);
+  /**
+   * Timeout for product query operations.
+   */
+  private static final Duration TIMEOUT = Duration.ofSeconds(5);
 
   private final KafkaSender<String, Object> kafkaSender;
   private final CircuitBreaker circuitBreaker;
