@@ -1,7 +1,7 @@
 package com.nttd.banking.customer.domain.service;
 
-import com.nttd.banking.customer.application.exception.CustomerHasActiveProductsException;
-import com.nttd.banking.customer.application.exception.CustomerNotFoundException;
+import com.nttd.banking.customer.domain.exception.CustomerHasActiveProductsException;
+import com.nttd.banking.customer.domain.exception.CustomerNotFoundException;
 import com.nttd.banking.customer.domain.model.Customer;
 import com.nttd.banking.customer.domain.model.enums.CustomerStatus;
 import com.nttd.banking.customer.domain.port.in.DeleteCustomerUseCase;

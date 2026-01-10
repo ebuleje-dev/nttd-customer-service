@@ -1,4 +1,4 @@
-package com.nttd.banking.customer.application.exception;
+package com.nttd.banking.customer.domain.exception;
 
 /**
  * Exception thrown when attempting to create a customer with duplicate email or document.

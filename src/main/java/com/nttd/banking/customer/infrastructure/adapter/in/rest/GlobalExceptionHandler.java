@@ -1,5 +1,10 @@
-package com.nttd.banking.customer.application.exception;
+package com.nttd.banking.customer.infrastructure.adapter.in.rest;
 
+import com.nttd.banking.customer.domain.exception.BusinessValidationException;
+import com.nttd.banking.customer.domain.exception.CustomerHasActiveProductsException;
+import com.nttd.banking.customer.domain.exception.CustomerNotFoundException;
+import com.nttd.banking.customer.domain.exception.DuplicateCustomerException;
+import com.nttd.banking.customer.domain.exception.ProfileUpdateNotAllowedException;
 import com.nttd.banking.customer.model.dto.ErrorResponse;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;

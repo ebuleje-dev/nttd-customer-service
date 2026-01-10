@@ -6,8 +6,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import com.nttd.banking.customer.application.exception.CustomerNotFoundException;
-import com.nttd.banking.customer.application.exception.ProfileUpdateNotAllowedException;
+import com.nttd.banking.customer.domain.exception.CustomerNotFoundException;
+import com.nttd.banking.customer.domain.exception.ProfileUpdateNotAllowedException;
 import com.nttd.banking.customer.domain.model.BusinessCustomer;
 import com.nttd.banking.customer.domain.model.Customer;
 import com.nttd.banking.customer.domain.model.PersonalCustomer;

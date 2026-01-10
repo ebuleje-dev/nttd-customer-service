@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import com.nttd.banking.customer.application.exception.CustomerNotFoundException;
+import com.nttd.banking.customer.domain.exception.CustomerNotFoundException;
 import com.nttd.banking.customer.domain.event.ProductsQueryResponse;
 import com.nttd.banking.customer.domain.model.PersonalCustomer;
 import com.nttd.banking.customer.domain.model.enums.CustomerStatus;
