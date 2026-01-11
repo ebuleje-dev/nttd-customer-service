@@ -1,4 +1,4 @@
-package com.nttd.banking.customer.infrastructure.adapter.out.persistence;
+package com.nttd.banking.customer.infrastructure.adapter.out.persistence.entity;
 
 import com.nttd.banking.customer.domain.model.enums.CustomerStatus;
 import com.nttd.banking.customer.domain.model.enums.CustomerType;

@@ -1,7 +1,9 @@
-package com.nttd.banking.customer.infrastructure.adapter.out.persistence;
+package com.nttd.banking.customer.infrastructure.adapter.out.persistence.adapter;
 
+import com.nttd.banking.customer.application.mapper.CustomerPersistenceMapper;
 import com.nttd.banking.customer.domain.model.Customer;
 import com.nttd.banking.customer.domain.port.out.CustomerRepository;
+import com.nttd.banking.customer.infrastructure.adapter.out.persistence.repository.CustomerMongoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -10,6 +12,7 @@ import reactor.core.publisher.Mono;
 
 /**
  * MongoDB implementation of the customer repository.
+ * Implements the domain port using the persistence adapter pattern.
  *
  * @author NTT Data
  * @version 1.0
@@ -17,17 +20,17 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Repository
 @RequiredArgsConstructor
-public class CustomerRepositoryImpl implements CustomerRepository {
+public class CustomerRepositoryAdapter implements CustomerRepository {
 
   private final CustomerMongoRepository mongoRepository;
-  private final CustomerEntityMapper mapper;
+  private final CustomerPersistenceMapper mapper;
 
   @Override
   public Mono<Customer> save(Customer customer) {
     log.debug("Saving customer to MongoDB: {}", customer.getId());
 
     return Mono.just(customer)
-        .map(mapper::toPersistence)
+        .map(mapper::toEntity)
         .flatMap(mongoRepository::save)
         .map(mapper::toDomain)
         .doOnSuccess(saved -> log.debug("Customer saved successfully: {}", saved.getId()))

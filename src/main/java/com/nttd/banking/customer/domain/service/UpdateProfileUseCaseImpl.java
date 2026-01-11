@@ -1,8 +1,8 @@
 package com.nttd.banking.customer.domain.service;
 
-import com.nttd.banking.customer.domain.exception.BusinessValidationException;
-import com.nttd.banking.customer.domain.exception.CustomerNotFoundException;
-import com.nttd.banking.customer.domain.exception.ProfileUpdateNotAllowedException;
+import com.nttd.banking.customer.application.exception.BusinessValidationException;
+import com.nttd.banking.customer.application.exception.CustomerNotFoundException;
+import com.nttd.banking.customer.application.exception.ProfileUpdateNotAllowedException;
 import com.nttd.banking.customer.domain.model.BusinessCustomer;
 import com.nttd.banking.customer.domain.model.Customer;
 import com.nttd.banking.customer.domain.model.PersonalCustomer;

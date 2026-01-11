@@ -1,7 +1,5 @@
 package com.nttd.banking.customer.domain.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.nttd.banking.customer.domain.model.enums.BusinessProfile;
 import com.nttd.banking.customer.domain.model.enums.BusinessType;
 import com.nttd.banking.customer.domain.model.enums.CustomerType;
@@ -15,6 +13,8 @@ import lombok.experimental.SuperBuilder;
 
 /**
  * Domain entity for business customers (legal entities).
+ * This is a pure domain model without framework dependencies.
+ * Jackson serialization is configured via MixIns in infrastructure layer.
  *
  * @author NTT Data
  * @version 1.0
@@ -23,7 +23,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class BusinessCustomer extends Customer {
 
   /** Company's legal business name. */
@@ -165,7 +164,6 @@ public class BusinessCustomer extends Customer {
    *
    * @return true if profile is PYME
    */
-  @JsonIgnore
   public boolean isPyme() {
     return BusinessProfile.PYME.equals(this.businessProfile);
   }

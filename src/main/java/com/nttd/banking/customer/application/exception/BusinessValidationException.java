@@ -1,4 +1,4 @@
-package com.nttd.banking.customer.domain.exception;
+package com.nttd.banking.customer.application.exception;
 
 /**
  * Exception thrown when a business rule validation fails.

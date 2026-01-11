@@ -1,5 +1,6 @@
-package com.nttd.banking.customer.infrastructure.adapter.out.persistence;
+package com.nttd.banking.customer.infrastructure.adapter.out.persistence.repository;
 
+import com.nttd.banking.customer.infrastructure.adapter.out.persistence.entity.CustomerEntity;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;

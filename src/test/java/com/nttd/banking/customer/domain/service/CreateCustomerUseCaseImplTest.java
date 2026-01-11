@@ -6,8 +6,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import com.nttd.banking.customer.domain.exception.BusinessValidationException;
-import com.nttd.banking.customer.domain.exception.DuplicateCustomerException;
+import com.nttd.banking.customer.application.exception.BusinessValidationException;
+import com.nttd.banking.customer.application.exception.DuplicateCustomerException;
 import com.nttd.banking.customer.domain.model.BusinessCustomer;
 import com.nttd.banking.customer.domain.model.Customer;
 import com.nttd.banking.customer.domain.model.PersonalCustomer;

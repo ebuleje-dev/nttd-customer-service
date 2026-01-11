@@ -1,7 +1,5 @@
 package com.nttd.banking.customer.domain.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.nttd.banking.customer.domain.model.enums.CustomerType;
 import com.nttd.banking.customer.domain.model.enums.Gender;
 import com.nttd.banking.customer.domain.model.enums.PersonalProfile;
@@ -16,6 +14,8 @@ import lombok.experimental.SuperBuilder;
 
 /**
  * Domain entity for personal customers (natural persons).
+ * This is a pure domain model without framework dependencies.
+ * Jackson serialization is configured via MixIns in infrastructure layer.
  *
  * @author NTT Data
  * @version 1.0
@@ -24,7 +24,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class PersonalCustomer extends Customer {
 
   /** Customer's first name. */
@@ -95,7 +94,6 @@ public class PersonalCustomer extends Customer {
    *
    * @return age in years
    */
-  @JsonIgnore
   public int getAge() {
     LocalDate birthDate =
         LocalDate.ofInstant(dateOfBirth, ZoneId.systemDefault());
@@ -108,7 +106,6 @@ public class PersonalCustomer extends Customer {
    *
    * @return full name (firstName + lastName)
    */
-  @JsonIgnore
   public String getFullName() {
     return firstName + " " + lastName;
   }
@@ -118,7 +115,6 @@ public class PersonalCustomer extends Customer {
    *
    * @return true if profile is VIP
    */
-  @JsonIgnore
   public boolean isVip() {
     return PersonalProfile.VIP.equals(this.personalProfile);
   }

@@ -1,9 +1,13 @@
-package com.nttd.banking.customer.infrastructure.adapter.out.persistence;
+package com.nttd.banking.customer.application.mapper;
 
 import com.nttd.banking.customer.domain.model.AuthorizedSigner;
 import com.nttd.banking.customer.domain.model.BusinessCustomer;
 import com.nttd.banking.customer.domain.model.Customer;
 import com.nttd.banking.customer.domain.model.PersonalCustomer;
+import com.nttd.banking.customer.infrastructure.adapter.out.persistence.entity.AuthorizedSignerEntity;
+import com.nttd.banking.customer.infrastructure.adapter.out.persistence.entity.BusinessCustomerEntity;
+import com.nttd.banking.customer.infrastructure.adapter.out.persistence.entity.CustomerEntity;
+import com.nttd.banking.customer.infrastructure.adapter.out.persistence.entity.PersonalCustomerEntity;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -11,12 +15,13 @@ import org.springframework.stereotype.Component;
 
 /**
  * Mapper between domain entities and persistence entities.
+ * Located in application layer as per hexagonal architecture guidelines.
  *
  * @author NTT Data
  * @version 1.0
  */
 @Component
-public class CustomerEntityMapper {
+public class CustomerPersistenceMapper {
 
   /**
    * Converts a domain entity to a persistence entity.
@@ -25,7 +30,7 @@ public class CustomerEntityMapper {
    * @return persistence entity (PersonalCustomerEntity or BusinessCustomerEntity)
    * @throws IllegalArgumentException if customer type is unknown
    */
-  public CustomerEntity toPersistence(Customer customer) {
+  public CustomerEntity toEntity(Customer customer) {
     if (customer == null) {
       return null;
     }
@@ -66,7 +71,7 @@ public class CustomerEntityMapper {
           .businessType(businessCustomer.getBusinessType())
           .taxId(businessCustomer.getTaxId())
           .businessProfile(businessCustomer.getBusinessProfile())
-          .authorizedSigners(toSignersPersistence(businessCustomer.getAuthorizedSigners()))
+          .authorizedSigners(toSignersEntity(businessCustomer.getAuthorizedSigners()))
           .build();
     }
 
@@ -135,7 +140,7 @@ public class CustomerEntityMapper {
    * @param signer domain signer
    * @return persistence signer
    */
-  public AuthorizedSignerEntity toSignerPersistence(AuthorizedSigner signer) {
+  public AuthorizedSignerEntity toSignerEntity(AuthorizedSigner signer) {
     if (signer == null) {
       return null;
     }
@@ -175,12 +180,12 @@ public class CustomerEntityMapper {
    * @param signers list of domain signers
    * @return list of persistence signers
    */
-  public List<AuthorizedSignerEntity> toSignersPersistence(List<AuthorizedSigner> signers) {
+  public List<AuthorizedSignerEntity> toSignersEntity(List<AuthorizedSigner> signers) {
     if (signers == null) {
       return Collections.emptyList();
     }
 
-    return signers.stream().map(this::toSignerPersistence).collect(Collectors.toList());
+    return signers.stream().map(this::toSignerEntity).collect(Collectors.toList());
   }
 
   /**

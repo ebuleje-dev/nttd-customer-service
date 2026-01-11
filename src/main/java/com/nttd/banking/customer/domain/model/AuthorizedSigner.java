@@ -1,37 +1,40 @@
 package com.nttd.banking.customer.domain.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.nttd.banking.customer.domain.model.enums.DocumentType;
 import com.nttd.banking.customer.domain.model.enums.SignerRole;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
-import lombok.extern.jackson.Jacksonized;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Immutable value object representing an authorized signer for business customers.
+ * Value object representing an authorized signer for business customers.
+ * This is a pure domain model without framework dependencies.
+ * Jackson serialization is configured via MixIns in infrastructure layer.
  *
  * @author NTT Data
  * @version 1.0
  */
-@Value
+@Data
 @Builder
-@Jacksonized
+@NoArgsConstructor
+@AllArgsConstructor
 public class AuthorizedSigner {
 
   /** Signer's first name. */
-  String firstName;
+  private String firstName;
 
   /** Signer's last name. */
-  String lastName;
+  private String lastName;
 
   /** Signer's document type (DNI, CEX, PASSPORT). */
-  DocumentType documentType;
+  private DocumentType documentType;
 
   /** Signer's document number. */
-  String documentNumber;
+  private String documentNumber;
 
   /** Signer's role (TITULAR or AUTHORIZED). */
-  SignerRole role;
+  private SignerRole role;
 
   /**
    * Validates authorized signer data.
@@ -65,7 +68,6 @@ public class AuthorizedSigner {
    *
    * @return full name (firstName + lastName)
    */
-  @JsonIgnore
   public String getFullName() {
     return firstName + " " + lastName;
   }

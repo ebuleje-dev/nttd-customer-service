@@ -1,10 +1,5 @@
-package com.nttd.banking.customer.infrastructure.adapter.in.rest;
+package com.nttd.banking.customer.application.exception;
 
-import com.nttd.banking.customer.domain.exception.BusinessValidationException;
-import com.nttd.banking.customer.domain.exception.CustomerHasActiveProductsException;
-import com.nttd.banking.customer.domain.exception.CustomerNotFoundException;
-import com.nttd.banking.customer.domain.exception.DuplicateCustomerException;
-import com.nttd.banking.customer.domain.exception.ProfileUpdateNotAllowedException;
 import com.nttd.banking.customer.model.dto.ErrorResponse;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
@@ -23,6 +18,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 /**
  * Global exception handler for the application.
+ * Located in application layer as per hexagonal architecture guidelines.
  *
  * @author NTT Data
  * @version 1.0

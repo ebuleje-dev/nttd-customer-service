@@ -1,4 +1,4 @@
-package com.nttd.banking.customer.domain.exception;
+package com.nttd.banking.customer.application.exception;
 
 import static org.junit.jupiter.api.Assertions.*;
 
