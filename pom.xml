@@ -38,7 +38,7 @@
         <sonar.projectKey>nttd-customer-service</sonar.projectKey>
         <sonar.projectName>NTT Data - Customer Service</sonar.projectName>
         <sonar.host.url>http://localhost:8081</sonar.host.url>
-        <sonar.login>sqa_dd29e1171a24bf79d972cee747860b576b8d41e4</sonar.login>
+        <sonar.login>squ_ddd8cec4fe625a32e98ac7c15da785f143be4c77</sonar.login>
         <sonar.java.source>17</sonar.java.source>
         <sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
 

@@ -2,8 +2,8 @@ package com.nttd.banking.customer.infrastructure.adapter.out.messaging;
 
 import com.nttd.banking.customer.domain.event.CustomerCreatedEvent;
 import com.nttd.banking.customer.domain.event.CustomerDeletedEvent;
+import com.nttd.banking.customer.domain.event.CustomerProfileUpdatedEvent;
 import com.nttd.banking.customer.domain.event.CustomerUpdatedEvent;
-import com.nttd.banking.customer.domain.event.ProfileUpdatedEvent;
 import com.nttd.banking.customer.domain.model.BusinessCustomer;
 import com.nttd.banking.customer.domain.model.Customer;
 import com.nttd.banking.customer.domain.model.PersonalCustomer;
@@ -28,9 +28,6 @@ public class CustomerEventMapper {
     return CustomerCreatedEvent.create(
         customer.getId(),
         customer.getCustomerType().name(),
-        customer.getDocumentType().name(),
-        customer.getDocumentNumber(),
-        customer.getEmail(),
         extractProfile(customer));
   }
 
@@ -44,9 +41,7 @@ public class CustomerEventMapper {
     return CustomerUpdatedEvent.create(
         customer.getId(),
         customer.getCustomerType().name(),
-        customer.getEmail(),
-        customer.getPhoneNumber(),
-        customer.getAddress());
+        extractProfile(customer));
   }
 
   /**
@@ -60,18 +55,17 @@ public class CustomerEventMapper {
   }
 
   /**
-   * Creates a ProfileUpdatedEvent from customer and profile changes.
+   * Creates a CustomerProfileUpdatedEvent from customer and profile changes.
    *
    * @param customer the customer
    * @param oldProfile the previous profile
    * @param newProfile the new profile
    * @return the event to publish
    */
-  public ProfileUpdatedEvent toProfileUpdatedEvent(
+  public CustomerProfileUpdatedEvent toProfileUpdatedEvent(
       Customer customer, String oldProfile, String newProfile) {
-    return ProfileUpdatedEvent.create(
+    return CustomerProfileUpdatedEvent.create(
         customer.getId(),
-        customer.getCustomerType().name(),
         oldProfile,
         newProfile);
   }

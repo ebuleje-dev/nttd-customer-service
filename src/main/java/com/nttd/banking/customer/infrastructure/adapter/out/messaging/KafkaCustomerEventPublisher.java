@@ -1,6 +1,5 @@
 package com.nttd.banking.customer.infrastructure.adapter.out.messaging;
 
-import com.nttd.banking.customer.domain.event.CustomerEvent;
 import com.nttd.banking.customer.domain.model.Customer;
 import com.nttd.banking.customer.domain.port.out.CustomerEventPublisher;
 import lombok.RequiredArgsConstructor;
@@ -29,29 +28,29 @@ public class KafkaCustomerEventPublisher implements CustomerEventPublisher {
   public Mono<Void> publishCustomerCreated(Customer customer) {
     var event = eventMapper.toCreatedEvent(customer);
     log.info("Publishing CustomerCreatedEvent for customerId: {}", customer.getId());
-    return sendEvent(KafkaTopics.CUSTOMER_EVENTS, customer.getId(), event);
+    return sendEvent(KafkaTopics.CUSTOMER_CREATED, customer.getId(), event);
   }
 
   @Override
   public Mono<Void> publishCustomerUpdated(Customer customer) {
     var event = eventMapper.toUpdatedEvent(customer);
     log.info("Publishing CustomerUpdatedEvent for customerId: {}", customer.getId());
-    return sendEvent(KafkaTopics.CUSTOMER_EVENTS, customer.getId(), event);
+    return sendEvent(KafkaTopics.CUSTOMER_UPDATED, customer.getId(), event);
   }
 
   @Override
   public Mono<Void> publishCustomerDeleted(String customerId) {
     var event = eventMapper.toDeletedEvent(customerId);
     log.info("Publishing CustomerDeletedEvent for customerId: {}", customerId);
-    return sendEvent(KafkaTopics.CUSTOMER_EVENTS, customerId, event);
+    return sendEvent(KafkaTopics.CUSTOMER_DELETED, customerId, event);
   }
 
   @Override
   public Mono<Void> publishProfileUpdated(Customer customer, String oldProfile, String newProfile) {
     var event = eventMapper.toProfileUpdatedEvent(customer, oldProfile, newProfile);
-    log.info("Publishing ProfileUpdatedEvent for customerId: {} ({} -> {})",
+    log.info("Publishing CustomerProfileUpdatedEvent for customerId: {} ({} -> {})",
         customer.getId(), oldProfile, newProfile);
-    return sendEvent(KafkaTopics.PROFILE_EVENTS, customer.getId(), event);
+    return sendEvent(KafkaTopics.CUSTOMER_PROFILE_UPDATED, customer.getId(), event);
   }
 
   /**
@@ -62,14 +61,14 @@ public class KafkaCustomerEventPublisher implements CustomerEventPublisher {
    * @param event the event to send
    * @return Mono that completes when event is sent
    */
-  private Mono<Void> sendEvent(String topic, String key, CustomerEvent event) {
+  private Mono<Void> sendEvent(String topic, String key, Object event) {
     ProducerRecord<String, Object> producerRecord = new ProducerRecord<>(topic, key, event);
     SenderRecord<String, Object, String> senderRecord =
-        SenderRecord.create(producerRecord, event.getEventId());
+        SenderRecord.create(producerRecord, key);
 
     return kafkaSender.send(Mono.just(senderRecord))
-        .doOnNext(result -> log.debug("Event sent successfully: topic={}, key={}, eventId={}",
-            topic, key, event.getEventId()))
+        .doOnNext(result -> log.debug("Event sent successfully: topic={}, key={}",
+            topic, key))
         .doOnError(error -> log.error("Failed to send event: topic={}, key={}, error={}",
             topic, key, error.getMessage()))
         .then();

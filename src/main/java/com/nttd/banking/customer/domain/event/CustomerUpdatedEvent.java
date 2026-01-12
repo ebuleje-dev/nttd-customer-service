@@ -1,10 +1,11 @@
 package com.nttd.banking.customer.domain.event;
 
 import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 
 /**
  * Event published when a customer is updated.
@@ -14,42 +15,33 @@ import lombok.experimental.SuperBuilder;
  */
 @Getter
 @Setter
-@SuperBuilder
+@Builder
 @NoArgsConstructor
-public class CustomerUpdatedEvent extends CustomerEvent {
+@AllArgsConstructor
+public class CustomerUpdatedEvent {
 
-  private static final String EVENT_TYPE = "CUSTOMER_UPDATED";
-
+  private String customerId;
   private String customerType;
-  private String email;
-  private String phoneNumber;
-  private String address;
+  private String customerProfile;
+  private Instant updatedAt;
 
   /**
-   * Creates a new CustomerUpdatedEvent with generated ID and current timestamp.
+   * Creates a new CustomerUpdatedEvent with current timestamp.
    *
    * @param customerId the customer identifier
-   * @param customerType the type of customer
-   * @param email the updated email
-   * @param phoneNumber the updated phone number
-   * @param address the updated address
+   * @param customerType the type of customer (PERSONAL/BUSINESS)
+   * @param customerProfile the customer profile (STANDARD/VIP/PYME)
    * @return a new CustomerUpdatedEvent instance
    */
   public static CustomerUpdatedEvent create(
       String customerId,
       String customerType,
-      String email,
-      String phoneNumber,
-      String address) {
+      String customerProfile) {
     return CustomerUpdatedEvent.builder()
-        .eventId(generateEventId())
-        .eventType(EVENT_TYPE)
         .customerId(customerId)
-        .timestamp(Instant.now())
         .customerType(customerType)
-        .email(email)
-        .phoneNumber(phoneNumber)
-        .address(address)
+        .customerProfile(customerProfile)
+        .updatedAt(Instant.now())
         .build();
   }
 }

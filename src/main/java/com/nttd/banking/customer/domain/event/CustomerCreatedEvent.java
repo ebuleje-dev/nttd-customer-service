@@ -1,10 +1,11 @@
 package com.nttd.banking.customer.domain.event;
 
 import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 
 /**
  * Event published when a new customer is created.
@@ -14,46 +15,33 @@ import lombok.experimental.SuperBuilder;
  */
 @Getter
 @Setter
-@SuperBuilder
+@Builder
 @NoArgsConstructor
-public class CustomerCreatedEvent extends CustomerEvent {
+@AllArgsConstructor
+public class CustomerCreatedEvent {
 
-  private static final String EVENT_TYPE = "CUSTOMER_CREATED";
-
+  private String customerId;
   private String customerType;
-  private String documentType;
-  private String documentNumber;
-  private String email;
-  private String profile;
+  private String customerProfile;
+  private Instant createdAt;
 
   /**
-   * Creates a new CustomerCreatedEvent with generated ID and current timestamp.
+   * Creates a new CustomerCreatedEvent with current timestamp.
    *
    * @param customerId the customer identifier
    * @param customerType the type of customer (PERSONAL/BUSINESS)
-   * @param documentType the document type
-   * @param documentNumber the document number
-   * @param email the customer email
-   * @param profile the customer profile
+   * @param customerProfile the customer profile (STANDARD/VIP/PYME)
    * @return a new CustomerCreatedEvent instance
    */
   public static CustomerCreatedEvent create(
       String customerId,
       String customerType,
-      String documentType,
-      String documentNumber,
-      String email,
-      String profile) {
+      String customerProfile) {
     return CustomerCreatedEvent.builder()
-        .eventId(generateEventId())
-        .eventType(EVENT_TYPE)
         .customerId(customerId)
-        .timestamp(Instant.now())
         .customerType(customerType)
-        .documentType(documentType)
-        .documentNumber(documentNumber)
-        .email(email)
-        .profile(profile)
+        .customerProfile(customerProfile)
+        .createdAt(Instant.now())
         .build();
   }
 }

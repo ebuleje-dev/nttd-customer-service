@@ -13,14 +13,24 @@ public final class KafkaTopics {
   }
 
   /**
-   * Topic for customer lifecycle events (created, updated, deleted).
+   * Topic for customer created events.
    */
-  public static final String CUSTOMER_EVENTS = "customer-events";
+  public static final String CUSTOMER_CREATED = "customer.customer.created";
 
   /**
-   * Topic for profile update events (VIP, PYME transitions).
+   * Topic for customer updated events.
    */
-  public static final String PROFILE_EVENTS = "customer-profile-events";
+  public static final String CUSTOMER_UPDATED = "customer.customer.updated";
+
+  /**
+   * Topic for customer deleted events.
+   */
+  public static final String CUSTOMER_DELETED = "customer.customer.deleted";
+
+  /**
+   * Topic for customer profile update events (VIP, PYME transitions).
+   */
+  public static final String CUSTOMER_PROFILE_UPDATED = "customer.profile.updated";
 
   /**
    * Topic for credit card validation requests.
@@ -43,4 +53,16 @@ public final class KafkaTopics {
    * Receives aggregated product information from other microservices.
    */
   public static final String CUSTOMER_PRODUCTS_RESPONSE = "customer-products-response";
+
+  /**
+   * Topic for customer validation requests.
+   * Used by other services to verify if a customer exists.
+   */
+  public static final String CUSTOMER_VALIDATION_REQUEST = "customer.validation.request";
+
+  /**
+   * Topic for customer validation responses.
+   * Returns customer existence and details.
+   */
+  public static final String CUSTOMER_VALIDATION_RESPONSE = "customer.validation.response";
 }
