@@ -10,7 +10,6 @@ import com.nttd.banking.customer.model.dto.ProductSummaryDTO;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 /**
@@ -60,7 +59,7 @@ public class ProductSummaryMapper {
 
     return accounts.stream()
         .map(this::mapAccount)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
@@ -94,7 +93,7 @@ public class ProductSummaryMapper {
 
     return credits.stream()
         .map(this::mapCredit)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
@@ -146,7 +145,7 @@ public class ProductSummaryMapper {
 
     return cards.stream()
         .map(this::mapCreditCard)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
@@ -180,7 +179,7 @@ public class ProductSummaryMapper {
 
     return cards.stream()
         .map(this::mapDebitCard)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**

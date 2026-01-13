@@ -91,7 +91,7 @@ public class CustomerMapper {
               dto.getAuthorizedSigners() != null
                   ? dto.getAuthorizedSigners().stream()
                       .map(this::mapAuthorizedSignerToDomain)
-                      .collect(Collectors.toList())
+                      .toList()
                   : Collections.emptyList())
           .build();
     }
@@ -149,7 +149,7 @@ public class CustomerMapper {
           businessCustomer.getAuthorizedSigners() != null
               ? businessCustomer.getAuthorizedSigners().stream()
                   .map(this::mapAuthorizedSignerToDto)
-                  .collect(Collectors.toList())
+                  .toList()
               : Collections.emptyList());
     }
 

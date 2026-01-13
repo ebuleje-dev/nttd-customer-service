@@ -185,7 +185,7 @@ public class CustomerPersistenceMapper {
       return Collections.emptyList();
     }
 
-    return signers.stream().map(this::toSignerEntity).collect(Collectors.toList());
+    return signers.stream().map(this::toSignerEntity).toList();
   }
 
   /**
@@ -199,6 +199,6 @@ public class CustomerPersistenceMapper {
       return Collections.emptyList();
     }
 
-    return entities.stream().map(this::toSignerDomain).collect(Collectors.toList());
+    return entities.stream().map(this::toSignerDomain).toList();
   }
 }
